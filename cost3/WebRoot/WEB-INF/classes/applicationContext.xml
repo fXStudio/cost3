@@ -41,6 +41,9 @@
 				<value>
 					com/ruling/cost/user/domain/Welfare.hbm.xml
 				</value>
+				<value>
+					com/ruling/cost/user/domain/WelfareBak.hbm.xml
+				</value>
 				<value>com/ruling/cost/item/domain/Item.hbm.xml</value>
 				<value>
 					com/ruling/cost/subsidy/domain/Subsidy.hbm.xml

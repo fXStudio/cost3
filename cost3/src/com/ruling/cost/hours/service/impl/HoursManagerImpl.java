@@ -617,7 +617,7 @@ public class HoursManagerImpl implements HoursManager {
 				cell.setCellValue(users.get(n).getUsername());
 
 				User u = users.get(n);
-				u.setFormula(getFormulaByUserId(u));
+				u.setFormula(getFormulaByUserId(date, u));
 			}
 			cell = row.createCell(users.size() + 1);
 			cell.setCellStyle(style);
@@ -703,12 +703,12 @@ public class HoursManagerImpl implements HoursManager {
 		}
 	}
 
-	private String getFormulaByUserId(User u) {
+	private String getFormulaByUserId(String date, User u) {
 		List list = (List) objDao.getByParm("from Subsidy where user.id = ?", new Object[] { u.getId() });
 		if (list.size() > 0) {
 			Subsidy sub = (Subsidy) list.get(0);
 
-			String formula = u.getNat().getWelfare().getWformula();
+			String formula = "2016-01".compareTo(date) < 0 ? u.getNat().getWelfareBak().getWformula(): u.getNat().getWelfare().getWformula();
 
 			list = (List) objDao.getByParm("from SubsidyHistory where subsidyId = ? order by id desc",
 					new Object[] { sub.getId() });

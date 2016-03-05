@@ -7,6 +7,15 @@ public class Native implements Serializable {
 	private String nativecode;
 
 	private Welfare welfare;
+	private WelfareBak welfareBak;
+
+	public WelfareBak getWelfareBak() {
+		return welfareBak;
+	}
+
+	public void setWelfareBak(WelfareBak welfareBak) {
+		this.welfareBak = welfareBak;
+	}
 
 	public Welfare getWelfare() {
 		return welfare;

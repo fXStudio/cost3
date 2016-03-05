@@ -16,5 +16,6 @@
 			<column name="nativename" />
 		</property>
 		<many-to-one unique="true" name="welfare"/>
+		<many-to-one unique="true" name="welfareBak"/>
 	</class>
 </hibernate-mapping>
