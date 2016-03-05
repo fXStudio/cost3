@@ -1,0 +1,171 @@
+package com.ruling.cost.department.service.impl;
+
+import java.util.List;
+
+
+import com.ruling.cost.department.domain.Department;
+import com.ruling.cost.department.service.DepartmentManager;
+import com.ruling.cost.user.domain.User;
+import com.ruling.cost.util.dao.ObjectDao;
+import com.ruling.cost.utils.PageModel;
+import com.ruling.cost.utils.SystemException;
+
+public class DepartmentManagerImpl implements DepartmentManager{
+	
+	ObjectDao objectDao;
+
+
+	public PageModel getAllDepartment(Department dept) {
+		
+		
+		PageModel pm = new PageModel();
+		
+		String hql="from Department";
+		
+		if(dept==null){
+			
+			pm = objectDao.searchPaginated(hql,null);
+			
+			return pm;
+		}
+		dept = convertDept(dept);
+
+		if(!dept.getDepartmentname().trim().equals("")&&!dept.getDepartmentcode().trim().equals("")){
+			
+			 Object[] obj = new Object[2];
+			 
+			 hql=" from Department dept where dept.departmentname like ? or dept.departmentcode like ?";
+			 
+			 obj[0]="%"+dept.getDepartmentname()+"%";
+			 obj[1]="%"+dept.getDepartmentcode()+"%";
+			 
+			 pm = objectDao.searchPaginated(hql,obj);
+			 
+			 return pm;
+		}
+		
+		if(dept.getDepartmentname().trim().equals("")&&dept.getDepartmentcode().trim().equals("")){
+			
+			 hql=" from Department";
+			 pm = objectDao.searchPaginated(hql,null);
+			 
+			 return pm;
+		}
+		
+		if(!dept.getDepartmentname().trim().equals("")&&dept.getDepartmentcode().trim().equals("")){
+			
+			 Object[] obj = new Object[1];
+			 
+			 hql=" from Department dept where dept.departmentname like ?";
+			 
+			 obj[0]="%"+dept.getDepartmentname()+"%";
+			 pm = objectDao.searchPaginated(hql,obj);
+			 
+			 return pm;
+		}
+		
+		
+		if(dept.getDepartmentname().trim().equals("")&&!dept.getDepartmentcode().trim().equals("")){
+			
+			 Object[] obj = new Object[1];
+			 
+			 hql=" from Department dept where dept.departmentcode like ?";
+			 
+			 obj[0]="%"+dept.getDepartmentcode()+"%";
+			 pm = objectDao.searchPaginated(hql,obj);
+			 
+			 return pm;
+		}
+		 
+		 return pm;
+	 	 
+	}
+
+	private Department convertDept(Department dept) {
+		
+		if(dept.getDepartmentname()==null){
+			dept.setDepartmentname("");
+		}
+		if(dept.getDepartmentcode()==null){
+			dept.setDepartmentcode("");
+		}
+		if(dept.getDepartmentcode().indexOf("?")!=-1){
+		String code = dept.getDepartmentcode().substring(0, dept.getDepartmentcode().indexOf("?"));
+		dept.setDepartmentcode(code);
+	}
+		if(dept.getDepartmentname().indexOf("?")!=-1){
+			String name = dept.getDepartmentname().substring(0, dept.getDepartmentname().indexOf("?"));
+			dept.setDepartmentname(name);
+		}
+		return dept;
+	}
+
+	public Department getDepartmentById(int id) {
+		Department de=(Department) objectDao.getById(Department.class, id);
+		return de;
+	}
+
+	public void addDepartment(Department de) throws Exception{
+		String code = de.getDepartmentcode();
+		
+		List codelist = this.objectDao.getByParm(" from Department d where d.departmentcode=?", new Object[]{code});
+		
+		if(codelist.size()>0){
+			throw new SystemException("组织编码重复");
+		}
+		objectDao.save(de);
+		
+	}
+
+	public void updateDepartmentManager(Department de) {
+		objectDao.update(de);
+		
+	}
+
+	public ObjectDao getObjectDao() {
+		return objectDao;
+	}
+
+	public void setObjectDao(ObjectDao objectDao) {
+		this.objectDao = objectDao;
+	}
+
+	public void delDepartmentManager(List deptIds) throws Exception{
+		
+		for(int i=0;i<deptIds.size();i++){
+			
+			int deptId = (Integer)deptIds.get(i);
+			
+			Department dt = (Department)this.objectDao.getById(Department.class, deptId);
+			
+			List userlist = this.objectDao.getByParm("from User u where u.dept.id=?", new Object[]{dt.getId()});
+			
+			if(userlist!=null&&userlist.size()>0){
+				
+				throw new SystemException(dt.getDepartmentname()+"下已添加人员信息，不允许删除");
+			}
+			this.objectDao.delete(dt);
+		}
+	
+	}
+
+	public PageModel getAllDepartment(Department dept, int page, int pageSize) {
+		int allRow = objectDao.getAll("Department").size();
+		int totalPage = objectDao.getTotalPage("Department", pageSize);
+		final int offset = PageModel.countOffset(pageSize, page);
+		final int length = pageSize;
+		final int currentPage = PageModel.countCurrentPage(page);
+		String hql2 = "from Department order by id";
+		List list = objectDao.findPage("Department",offset, length);
+
+
+		PageModel pageBean = new PageModel();
+		pageBean.setPageSize(pageSize);
+		pageBean.setCurrentPage(currentPage);
+		pageBean.setTotal(allRow);
+		pageBean.setTotalPage(totalPage);
+		pageBean.setDatas(list);
+		pageBean.init();
+		return pageBean;
+	}
+}

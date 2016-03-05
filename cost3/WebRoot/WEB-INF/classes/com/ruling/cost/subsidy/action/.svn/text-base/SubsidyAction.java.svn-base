@@ -1,0 +1,84 @@
+package com.ruling.cost.subsidy.action;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.ruling.cost.subsidy.domain.Subsidy;
+import com.ruling.cost.subsidy.service.SubsidyManager;
+import com.ruling.cost.utils.BaseAction;
+
+public class SubsidyAction extends BaseAction {
+
+
+	private SubsidyManager subsidyService;
+	
+	private Subsidy subsidy;
+
+	public SubsidyManager getSubsidyService() {
+		return subsidyService;
+	}
+
+	public void setSubsidyService(SubsidyManager subsidyService) {
+		this.subsidyService = subsidyService;
+	}
+
+	public Subsidy getSubsidy() {
+		return subsidy;
+	}
+
+	public void setSubsidy(Subsidy subsidy) {
+		this.subsidy = subsidy;
+	}
+	
+	public String addInput(){
+		
+		return "subsidy_add_input";
+	}
+	
+	public String add(){
+		
+		this.subsidyService.addSubsidy(subsidy);
+		
+		return "subsidy_add_success";
+	}
+	
+	public String delete(){
+		
+		String[] deleteid = subsidy.getDeleteid().split(",");
+		
+		List list = new ArrayList();
+		
+		for(int i=0;i<deleteid.length;i++){
+			
+			list.add(Integer.parseInt(deleteid[i].trim()));
+		}
+		
+		this.subsidyService.delSubsidy(list);
+		
+		return "subsidy_del_success";
+	}
+	
+	public String updateInput(){
+		
+		this.getServletRequest().setAttribute("subsidy", this.subsidyService.findSubsidyById(subsidy.getId()));
+		
+		return "subsidy_update_input";
+	}
+	
+	public String update(){
+		
+		this.subsidyService.updateSubsidy(subsidy);
+		
+		return "subsidy_update_success";
+	}
+	
+	public String browe(){
+		
+		this.getServletRequest().setAttribute("pm",this.subsidyService.findAllSubsidy(subsidy));
+		
+		this.getServletRequest().setAttribute("subsidy", subsidy);
+		
+		return "browe";
+	}
+	
+}

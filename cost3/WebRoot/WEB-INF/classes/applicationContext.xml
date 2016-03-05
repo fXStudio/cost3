@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+           http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+           http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
+	<bean id="dataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url"
+			value="jdbc:mysql://117.79.231.54:3306/wqq?useUnicode=true&amp;characterEncoding=utf-8" />
+		<property name="username" value="mispklc" />
+		<property name="password" value="pklc.com" />
+	</bean>
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+		<property name="dataSource">
+			<ref bean="dataSource" />
+		</property>
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">
+					org.hibernate.dialect.MySQLDialect
+				</prop>
+				<prop key="hibernate.show_sql">false</prop>
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+			</props>
+		</property>
+		<property name="mappingResources">
+			<list>
+				<value>
+					com/ruling/cost/department/domain/Department.hbm.xml
+				</value>
+				<value>com/ruling/cost/user/domain/User.hbm.xml</value>
+				<value>com/ruling/cost/user/domain/Post.hbm.xml</value>
+				<value>
+					com/ruling/cost/user/domain/Native.hbm.xml
+				</value>
+				<value>
+					com/ruling/cost/user/domain/Welfare.hbm.xml
+				</value>
+				<value>com/ruling/cost/item/domain/Item.hbm.xml</value>
+				<value>
+					com/ruling/cost/subsidy/domain/Subsidy.hbm.xml
+				</value>
+				<value>
+					com/ruling/cost/subsidy/domain/Subsidy_History.hbm.xml
+				</value>
+				<value>
+					com/ruling/cost/item/domain/ItemUser.hbm.xml
+				</value>
+				<value>com/ruling/cost/hours/domain/Hour.hbm.xml</value>
+				<value>
+					com/ruling/cost/total/domain/Total.hbm.xml
+				</value>
+				<value>
+					com/ruling/cost/overtime/domain/Overtime.hbm.xml
+				</value>
+				<value>
+					com/ruling/cost/itemreport/domain/ItemReport.hbm.xml
+				</value>
+				<value>
+					com/ruling/cost/itemreport/domain/ItemReport2.hbm.xml
+				</value>
+				<value>
+					com/ruling/cost/itemreport/domain/ItemReport3.hbm.xml
+				</value>
+				<value>
+					com/ruling/cost/timemanage/domain/CWorkTime.hbm.xml
+				</value>
+			</list>
+		</property>
+	</bean>
+	<bean id="transactionManager"
+		class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory">
+			<ref bean="sessionFactory" />
+		</property>
+	</bean>
+
+	<tx:advice id="smAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="save*" propagation="REQUIRED" />
+			<tx:method name="add*" propagation="REQUIRED" />
+			<tx:method name="del*" propagation="REQUIRED" />
+			<tx:method name="update*" propagation="REQUIRED" />
+		</tx:attributes>
+	</tx:advice>
+	<aop:config>
+		<aop:pointcut id="smMethod"
+			expression="execution(* *..service.*Manager.*(..))" />
+		<aop:advisor pointcut-ref="smMethod" advice-ref="smAdvice" />
+	</aop:config>
+	<!-- 公用Dao层方法 -->
+	<bean id="objectDao"
+		class="com.ruling.cost.util.dao.impl.ObjectDaoImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactory" />
+		</property>
+	</bean>
+	<!-- 工時錄入 -->
+	<bean id="hoursservice"
+		class="com.ruling.cost.hours.service.impl.HoursManagerImpl"
+		scope="prototype">
+		<property name="objDao" ref="objectDao" />
+		<property name="itemService" ref="itemService" />
+	</bean>
+	<bean id="hoursAction"
+		class="com.ruling.cost.hours.action.HoursAction" scope="prototype">
+		<property name="hmservice" ref="hoursservice" />
+	</bean>
+	<!-- 部门管理 -->
+
+	<bean id="departmentservice"
+		class="com.ruling.cost.department.service.impl.DepartmentManagerImpl">
+		<property name="objectDao">
+			<ref bean="objectDao" />
+		</property>
+	</bean>
+	<bean id="departmentAction"
+		class="com.ruling.cost.department.action.DepartmentAction"
+		scope="prototype">
+		<property name="departmentservice">
+			<ref bean="departmentservice"></ref>
+		</property>
+	</bean>
+
+	<!--用户管理  -->
+	<bean id="userService"
+		class="com.ruling.cost.user.service.impl.UserManagerImpl">
+		<property name="objectDao">
+			<ref bean="objectDao" />
+		</property>
+	</bean>
+	<bean id="userAction" class="com.ruling.cost.user.action.UserAction"
+		scope="prototype">
+		<property name="userService">
+			<ref bean="userService" />
+		</property>
+		<property name="itemService">
+			<ref bean="itemService" />
+		</property>
+	</bean>
+
+	<!-- 项目管理 -->
+	<bean id="itemService"
+		class="com.ruling.cost.item.service.impl.ItemManagerImpl">
+		<property name="objectDao">
+			<ref bean="objectDao" />
+		</property>
+		<property name="hoursservice">
+			<ref bean="hoursservice"></ref>
+		</property>
+	</bean>
+	<bean id="itemAction" class="com.ruling.cost.item.action.ItemAction"
+		scope="prototype">
+		<property name="itemService">
+			<ref bean="itemService" />
+		</property>
+	</bean>
+	<!-- 工资补贴管理 -->
+	<bean id="subsidyService"
+		class="com.ruling.cost.subsidy.service.impl.SubsidyManagerImpl">
+		<property name="objectDao">
+			<ref bean="objectDao" />
+		</property>
+	</bean>
+	<bean id="subsidyAction"
+		class="com.ruling.cost.subsidy.action.SubsidyAction"
+		scope="prototype">
+		<property name="subsidyService">
+			<ref bean="subsidyService" />
+		</property>
+	</bean>
+	<!-- 项目统计 -->
+	<bean id="totalAction"
+		class="com.ruling.cost.total.action.TotalAction" scope="prototype">
+		<property name="totalService">
+			<ref bean="totalService" />
+		</property>
+		<property name="itemService">
+			<ref bean="itemService" />
+		</property>
+		<property name="hoursservice">
+			<ref bean="hoursservice"></ref>
+		</property>
+	</bean>
+	<!-- 项目预算 -->
+	<bean id="budgetAction"
+		class="com.ruling.cost.total.action.BudgetAction" scope="prototype">
+		<property name="totalService">
+			<ref bean="totalService" />
+		</property>
+		<property name="itemService">
+			<ref bean="itemService" />
+		</property>
+		<property name="hoursservice">
+			<ref bean="hoursservice"></ref>
+		</property>
+	</bean>
+	<bean id="totalService"
+		class="com.ruling.cost.total.service.impl.TotalManagerImpl">
+		<property name="objectDao">
+			<ref bean="objectDao" />
+		</property>
+	</bean>
+	<!-- =============================超时工作=========================== -->
+	<bean id="overtimeAction"
+		class="com.ruling.cost.overtime.action.OvertimeAction"
+		scope="prototype">
+		<property name="overtimeManager">
+			<ref bean="OvertimeManagerImpl"></ref>
+		</property>
+	</bean>
+	<bean id="OvertimeManagerImpl"
+		class="com.ruling.cost.overtime.service.impl.OvertimeManagerImpl">
+		<property name="objectDao">
+			<ref bean="objectDao" />
+		</property>
+	</bean>
+
+	<!-- 项目报表 -->
+	<bean id="ItemReportAction"
+		class="com.ruling.cost.itemreport.action.ItemReportAction"
+		scope="prototype">
+		<property name="itemReportManager">
+			<ref bean="ItemReportImpl"></ref>
+		</property>
+	</bean>
+	<bean id="ItemReportImpl"
+		class="com.ruling.cost.itemreport.service.impl.ItemReportImpl">
+		<property name="objectDao">
+			<ref bean="objectDao" />
+		</property>
+	</bean>
+
+	<!-- 工作时间分配 -->
+	<bean id="TimeManagerAction"
+		class="com.ruling.cost.timemanage.action.TimeManagerAction"
+		scope="prototype">
+		<property name="timeService">
+			<ref bean="TimeManagerImpl"></ref>
+		</property>
+	</bean>
+	<bean id="TimeManagerImpl"
+		class="com.ruling.cost.timemanage.service.impl.TimeManagerImpl">
+		<property name="objectDao">
+			<ref bean="objectDao" />
+		</property>
+	</bean>
+</beans>

@@ -1,0 +1,260 @@
+@charset "utf-8";
+
+/* CSS Document */
+.address {
+	width: 900px;
+	height: 30px;
+	margin: 0 auto;
+	background: url(../images/gif7.gif) repeat-x top
+}
+
+.f12b_009f43 {
+	font-size: 12px;
+	font-weight: bold;
+	color: #009f43;
+}
+
+.f12b_000 {
+	font-size: 14px;
+	font-weight: bold;
+	color: #000000;
+}
+
+.f12b_9f1300 {
+	font-size: 12px;
+	color: #9f1300;
+}
+
+.bt {
+	height: 30px;
+	float: left;
+	background: url(../images/png13.png) no-repeat left;
+	padding-left: 40px;
+	margin-left: 15px;
+	line-height: 33px;
+	font-size: 14px;
+	font-weight: bold;
+	color: #c30900;
+}
+
+.ss {
+	width: 98%;
+	margin: 0 auto;
+	padding: 8px 0;
+	margin-top: 5px;
+	background: #e6e6e6
+}
+
+.ssan {
+	width: 62px;
+	height: 23px;
+	line-height: 23px;
+	text-align: center;
+	border: none;
+	background: url(../images/png14.png) no-repeat center;
+	color: #000000;
+	font-size: 12px;
+	font-weight: bold;
+	cursor: pointer;
+}
+
+.ssan:hover {
+	width: 62px;
+	height: 23px;
+	line-height: 23px;
+	text-align: center;
+	border: none;
+	background: url(../images/png14.png) no-repeat center;
+	color: #990000;
+	font-size: 12px;
+	font-weight: bold;
+	cursor: pointer;
+}
+
+.cakan {
+	height: 27px;
+	line-height: 30px;
+	padding-top: 3px;
+	float: right;
+	margin-right: 20px;
+	text-align: right;
+}
+
+.cakan img {
+	margin-left: 3px;
+}
+
+.tan1 {
+	width: 113px;
+	height: 30px;
+	line-height: 30px;
+	text-align: center;
+	border: none;
+	background: url(../images/gif8.gif) no-repeat center;
+	cursor: pointer;
+}
+
+.tan1a {
+	width: 113px;
+	height: 30px;
+	line-height: 30px;
+	text-align: center;
+	border: none;
+	background: url(../images/gif13.gif) no-repeat center;
+	cursor: pointer;
+}
+
+.tan2 {
+	width: 46px;
+	height: 22px;
+	line-height: 22px;
+	text-align: center;
+	border: none;
+	background: url(../images/gif9.gif) no-repeat center;
+	cursor: pointer;
+}
+
+.tan3 {
+	width: 46px;
+	height: 22px;
+	line-height: 22px;
+	text-align: center;
+	border: none;
+	background: url(../images/gif10.gif) no-repeat center;
+	cursor: pointer;
+}
+
+.tan4 {
+	width: 69px;
+	height: 22px;
+	line-height: 22px;
+	text-align: center;
+	border: none;
+	background: url(../images/gif11.gif) no-repeat center;
+	cursor: pointer;
+}
+
+.tan5 {
+	width: 46px;
+	height: 22px;
+	line-height: 18px;
+	text-align: center;
+	border: none;
+	background: url(../images/gifdept.gif) no-repeat center;
+	cursor: pointer;
+}
+
+.tan6 {
+	width: 113px;
+	height: 30px;
+	line-height: 25px;
+	text-align: center;
+	border: none;
+	background: url(../images/gifbackdept.gif) no-repeat center;
+	cursor: pointer;
+}
+
+.table {
+	width: 98%;
+	border-bottom: solid 1px #e2e2e2;
+	border-left: solid 1px #e2e2e2;
+	margin-top: 5px;
+	background: #FFFFFF;
+}
+
+.table td {
+	border-top: solid 1px #e2e2e2;
+	border-right: solid 1px #e2e2e2
+}
+
+.table tr:hover {
+	background: #f5f4ca
+}
+
+.tr {
+	background: #e7f2fb;
+	font-weight: bold
+}
+
+.tr2 {
+	background: #dcfaff;
+}
+
+DIV.sabrosus {
+	PADDING-RIGHT: 3px;
+	PADDING-LEFT: 3px;
+	PADDING-BOTTOM: 3px;
+	MARGIN: 3px;
+	PADDING-TOP: 3px;
+	TEXT-ALIGN: center
+}
+
+DIV.sabrosus A {
+	BORDER-RIGHT: #9aafe5 1px solid;
+	PADDING-RIGHT: 5px;
+	BORDER-TOP: #9aafe5 1px solid;
+	PADDING-LEFT: 5px;
+	PADDING-BOTTOM: 2px;
+	BORDER-LEFT: #9aafe5 1px solid;
+	COLOR: #2e6ab1;
+	MARGIN-RIGHT: 2px;
+	PADDING-TOP: 2px;
+	BORDER-BOTTOM: #9aafe5 1px solid;
+	TEXT-DECORATION: none
+}
+
+DIV.sabrosus A:hover {
+	BORDER-RIGHT: #2b66a5 1px solid;
+	BORDER-TOP: #2b66a5 1px solid;
+	BORDER-LEFT: #2b66a5 1px solid;
+	COLOR: #000;
+	BORDER-BOTTOM: #2b66a5 1px solid;
+	BACKGROUND-COLOR: lightyellow
+}
+
+DIV.pagination A:active {
+	BORDER-RIGHT: #2b66a5 1px solid;
+	BORDER-TOP: #2b66a5 1px solid;
+	BORDER-LEFT: #2b66a5 1px solid;
+	COLOR: #000;
+	BORDER-BOTTOM: #2b66a5 1px solid;
+	BACKGROUND-COLOR: lightyellow
+}
+
+DIV.sabrosus SPAN.current {
+	BORDER-RIGHT: navy 1px solid;
+	PADDING-RIGHT: 5px;
+	BORDER-TOP: navy 1px solid;
+	PADDING-LEFT: 5px;
+	FONT-WEIGHT: bold;
+	PADDING-BOTTOM: 2px;
+	BORDER-LEFT: navy 1px solid;
+	COLOR: #fff;
+	MARGIN-RIGHT: 2px;
+	PADDING-TOP: 2px;
+	BORDER-BOTTOM: navy 1px solid;
+	BACKGROUND-COLOR: #2e6ab1
+}
+
+DIV.sabrosus SPAN.disabled {
+	BORDER-RIGHT: #929292 1px solid;
+	PADDING-RIGHT: 5px;
+	BORDER-TOP: #929292 1px solid;
+	PADDING-LEFT: 5px;
+	PADDING-BOTTOM: 2px;
+	BORDER-LEFT: #929292 1px solid;
+	COLOR: #929292;
+	MARGIN-RIGHT: 2px;
+	PADDING-TOP: 2px;
+	BORDER-BOTTOM: #929292 1px solid
+}
+
+/*工时管理顶部查询*/
+.gsgl_cx {
+	width: 400px;
+	height: 30px;
+	line-height: 30px;
+	float: left;
+	margin-left: 20px;
+	text-align: left;
+}

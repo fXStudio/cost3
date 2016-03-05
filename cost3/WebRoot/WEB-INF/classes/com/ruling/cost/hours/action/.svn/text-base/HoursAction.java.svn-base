@@ -1,0 +1,1892 @@
+package com.ruling.cost.hours.action;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.struts2.ServletActionContext;
+
+import com.opensymphony.xwork2.ActionContext;
+import com.ruling.cost.holiday.service.HolidayManager;
+import com.ruling.cost.hours.domain.Hour;
+import com.ruling.cost.hours.service.HoursManager;
+import com.ruling.cost.item.domain.Item;
+import com.ruling.cost.item.domain.ItemUser;
+import com.ruling.cost.item.service.ItemManager;
+import com.ruling.cost.subsidy.domain.Subsidy;
+import com.ruling.cost.user.domain.User;
+import com.ruling.cost.user.service.UserManager;
+import com.ruling.cost.utils.DateUtil;
+import com.ruling.cost.utils.JxlExceptor;
+import com.ruling.cost.utils.PageModel;
+@SuppressWarnings("unchecked")
+public class HoursAction {
+	List  Hourlist;
+	String week;
+	public String getWeek() {
+		return week;
+	}
+	public void setWeek(String week) {
+		this.week = week;
+	}
+	String startdate;//
+	int enddate;//
+	public int getEnddate() {
+		return enddate;
+	}
+	public void setEnddate(int enddate) {
+		this.enddate = enddate;
+	}
+	public String getStartdate() {
+		return startdate;
+	}
+	public void setStartdate(String startdate) {
+		this.startdate = startdate;
+	}
+	List<Map> daylist=new ArrayList<Map>();//
+	public List<Map> getDaylist() {
+		return daylist;
+	}
+	public void setDaylist(List<Map> daylist) {
+		this.daylist = daylist;
+	}
+	List weeklist=new ArrayList();//
+	public List getWeeklist() {
+		return weeklist;
+	}
+	public void setWeeklist(List weeklist) {
+		this.weeklist = weeklist;
+	}
+	public List getHourlist() {
+		return Hourlist;
+	}
+	public void setHourlist(List hourlist) {
+		Hourlist = hourlist;
+	}
+	HoursManager hoursservice;
+//	//假期管理Manager
+//	private HolidayManager holidayService;
+//public HolidayManager getHolidayService() {
+//		return holidayService;
+//	}
+//	public void setHolidayService(HolidayManager holidayService) {
+//		this.holidayService = holidayService;
+//	}
+public void setHoursservice(HoursManager hoursservice) {
+		this.hoursservice = hoursservice;
+	}
+ItemManager itemService;
+public void setItemService(ItemManager itemService) {
+	this.itemService = itemService;
+}
+UserManager userService;
+public void setUserService(UserManager userService) {
+	this.userService = userService;
+}
+/**
+ * 
+ * @return
+ * @throws ParseException 
+ */
+public String getallHours() throws ParseException{
+	HttpServletRequest request = ServletActionContext.getRequest();
+	String date=hoursservice.getnowDateManager();
+	int monthdays=getmonthdays(date);//
+	int len=7;
+	request.setAttribute("date", date.split("-")[1].toString());
+	
+	String weekdate="";//
+    	String arr[]={"week1","week2","week3","week4","week5","week6"};
+    	Calendar c1 = Calendar.getInstance();
+		SimpleDateFormat   df1  =new   SimpleDateFormat("yyyy-MM-dd");  
+		String dateend=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+monthdays;
+        Date   cDate1   =   df1.parse(dateend);   
+        c1.setTime(cDate1);
+	int size=(c1.get(Calendar.WEEK_OF_MONTH));//获得本月有
+    	for(int z=0;z<size;z++){
+    		Map m=new HashMap();
+    		m.put("key",arr[z]);
+    		m.put("value", z);
+    		weeklist.add(m);
+    		}
+    	Calendar c = Calendar.getInstance();
+		SimpleDateFormat   df   =new   SimpleDateFormat("yyyy-MM-dd");  
+        Date   cDate   =   df.parse(date);   
+        c.setTime(cDate);
+	week=""+(c.get(Calendar.WEEK_OF_MONTH)-1);
+    		startdate=date.split("-")[2].toString();//
+    		if("01".equals(startdate)){
+    			String date1="";
+    			weekdate=getChinaWeekdaysofdate(date);
+    			if(!"日".equals(weekdate))
+        		{
+        			startdate="1";
+        			if("一".equals(weekdate)){
+        				len=6;
+        				
+        			}
+        			if("二".equals(weekdate)){
+        				len=5;
+        				
+        			}
+        			if("三".equals(weekdate)){
+        				len=4;
+        			}
+        			if("四".equals(weekdate)){
+        				len=3;
+        			}
+        			if("五".equals(weekdate)){
+        				len=2;
+        			}
+        			if("六".equals(weekdate)){
+        				len=1;
+        			} 
+        		  for(int k=0;k<7-len;k++){
+        			  daylist.add(null);//
+        		  }
+        		  for(int z=0;z<len;z++){
+        			 
+        			  if(Integer.parseInt(startdate)+z<9){
+        			  date1=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+"0"+(Integer.parseInt(startdate)+z);
+        			  }else{
+        				date1=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+(Integer.parseInt(startdate)+z);
+        			  }
+        				  
+        			  Map map=new HashMap();
+        				map.put("week",getChinaWeekdaysofdate(date1));
+        				map.put("day",date1);
+        			    daylist.add(map);
+        			   
+        		  }
+        		}
+    		}else{
+    			@SuppressWarnings("unused")
+				int d=Integer.parseInt(startdate);
+    			weekdate=getChinaWeekdaysofdate(date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-01");
+    			if(!"日".equals(weekdate))
+        		{
+        			startdate="1";
+        			if("一".equals(weekdate)){
+        				len=6;
+        				
+        			}
+        			if("二".equals(weekdate)){
+        				len=5;
+        				
+        			}
+        			if("三".equals(weekdate)){
+        				len=4;
+        			}
+        			if("四".equals(weekdate)){
+        				len=3;
+        			}
+        			if("五".equals(weekdate)){
+        				len=2;
+        			}
+        			if("六".equals(weekdate)){
+        				len=1;
+        			} 
+        			}
+    			int d1=0;
+    			if(week.equals("0")){
+    				startdate="1";
+    			}
+    			if(week.equals("1")){
+    				d1=len+1;
+    				startdate=""+d1;
+    			}
+    			if(week.equals("2")){
+    				d1=len+7+1;
+    				startdate=""+d1;
+    			}
+    			if(week.equals("3")){
+    				d1=len+7*2+1;
+    				startdate=""+d1;
+    			}
+    			if(week.equals("4")){
+    				d1=len+7*3+1;
+    				startdate=""+d1;
+    			}
+    			if(week.equals("0")){
+    				
+    			String date1="";
+    				  for(int k=0;k<7-len;k++){
+            			  daylist.add(null);
+            		  }
+            		  for(int z=0;z<len;z++){
+            			 
+            			  if(Integer.parseInt(startdate)+z<=9){
+            			  date1=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+"0"+(Integer.parseInt(startdate)+z);
+            			  }else{
+            				date1=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+(Integer.parseInt(startdate)+z);
+            			  }
+            				  
+            			  Map map=new HashMap();
+            				map.put("week",getChinaWeekdaysofdate(date1));
+            				map.put("day",date1);
+            			    daylist.add(map);
+            		  }
+    		}else{
+    			len=7;
+    			for(int i=Integer.parseInt(startdate);i<Integer.parseInt(startdate)+7;i++){
+    				if(Integer.parseInt(startdate)+len<=monthdays){
+    					String date1="";
+    					if(i<=9){
+    						date1=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+"0"+(i);
+    					}else{
+    				 date1=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+(i);
+    					}
+    				Map map=new HashMap();
+    				map.put("week",getChinaWeekdaysofdate(date1));
+    				map.put("day",date1);
+    			    daylist.add(map);
+    			}else{
+    				//String date1=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+i;
+    				if(i<=monthdays){
+    					String date2=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+i;
+    					Map map=new HashMap();
+    					map.put("week",getChinaWeekdaysofdate(date2));
+    					map.put("day",date2);
+    				    daylist.add(map);
+    				}
+    				
+    			}
+    			}
+    		}
+    		}
+    	if(monthdays==28){
+    		if("日".equals(weekdate)){
+
+    			weeklist.remove(4);
+    		}
+    	}
+	
+	if(Integer.parseInt(startdate)<=9){//
+		startdate="0"+startdate;
+	}
+	String enddate1="";
+	if("01".equals(startdate)){
+		 enddate=Integer.parseInt(startdate)+len*(Integer.parseInt(week)+1);
+		 
+		}else{
+			if(enddate<=monthdays){
+				if(enddate==monthdays)
+				enddate=monthdays;
+				if(enddate+7<=monthdays)
+					enddate=Integer.parseInt(startdate)+7;
+				}
+			}
+			
+	if(enddate<=9){
+		enddate1=("0"+enddate);
+	}else{
+		enddate1=enddate+"";
+	}
+	String starttime=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+startdate;	
+	String endtime="";
+	
+	if(enddate<=monthdays){
+	endtime=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+enddate1;
+	}else{
+		 endtime=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+(monthdays+1);
+		 enddate=Integer.parseInt(startdate);
+	}
+	//System.out.println(starttime+"--"+endtime);
+	List list1=new ArrayList();
+	List list2=new ArrayList();
+	List list4=new ArrayList();
+	List list5=new ArrayList();
+	User u=(User) request.getSession().getAttribute("login");
+	List list=hoursservice.getItmesidByuserid(u.getId());//根据用户查询所有的项目项目id
+	if(null!=list&&0!=list.size()){
+	for(int i=0;i<list.size();i++){
+		ItemUser m=(ItemUser) list.get(i);
+		 Item t=itemService.findItemById(m.getItemid());
+		 Map mm=new HashMap();
+		 mm.put("key", t.getItemname());
+		 mm.put("value", t.getId());
+		 
+		list4.add(mm);
+		 List list3=hoursservice.getweekhoursManager(t.getId(),u.getId(),starttime,endtime);//获得这周所有的时间，根据用户和项目id
+			
+		if(list3.size()==0||null==list3){
+			for(int z=0;z<7;z++){
+				list4.add("0");
+				
+			}
+			//list4.add(hoursservice.getHourByuseridtime(u.getId(),starttime));
+		}else{
+			if(Integer.parseInt(startdate)+7>monthdays){
+				for(int j=0;j<list3.size();j++){
+					list4.add(list3.get(j));
+					
+				}
+				for(int z=0;z<7-list3.size();z++){
+					list4.add("0");
+				}
+			}
+			
+			for(int z =0;z<7-len;z++){
+				list4.add("0");
+			}
+		for(int j=0;j<list3.size();j++){
+			list4.add(list3.get(j));
+			
+		}
+		}
+		list5.add(list4);
+		list4=new ArrayList();
+		
+		
+	}
+	list1.add(list5);
+	int start=Integer.parseInt(startdate);
+	List cost=hoursservice.getHourByitemslistbyuseridweek(u.getId(), starttime, endtime);//根据用户获得所有的这一周的信息。
+	int time=(cost.size()/list.size());
+	String kaishi="";
+	if(start==1){
+	for(int i=0;i<7-time;i++){
+		list2.add(0);
+	}
+	for(int j=0;j<time;j++){
+		if(start+j<=9){
+			kaishi="0"+(start+j);
+		}else{
+			kaishi=""+(start+j);
+		}
+		String  timetring=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+kaishi;
+		list2.add(hoursservice.getHourByuseridtime(u.getId(),timetring));
+	}
+	}else if(time==7){
+		for(int j=0;j<time;j++){
+			if(start+j<=9){
+				kaishi="0"+(start+j);
+			}else{
+				kaishi=""+(start+j);
+			}
+			String  timetring=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+kaishi;
+			list2.add(hoursservice.getHourByuseridtime(u.getId(),timetring));
+		}
+	}else {
+		for(int j=0;j<time;j++){
+			if(start+j<=9){
+				kaishi="0"+(start+j);
+			}else{
+				kaishi=""+(start+j);
+			}
+			String  timetring=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+kaishi;
+			list2.add(hoursservice.getHourByuseridtime(u.getId(),timetring));
+		}
+		for(int i=0;i<7-time;i++){
+			list2.add(0);
+		}
+		
+	}
+	list1.add(list2);
+	}
+	
+	request.setAttribute("list",list1);
+	request.setAttribute("username",u.getUsername());
+	request.setAttribute("week", week);
+	return "list";
+	
+}
+/**
+ * 
+ * @return
+ */
+
+public String save(){
+	
+	 HttpServletRequest request = ServletActionContext.getRequest();
+	 User u=(User) request.getSession().getAttribute("login");
+	 String ss=request.getParameter("stringarr").toString();
+	 String[] arr=ss.split("\\|");
+	 List hourLists = new ArrayList();
+	 for(String s : arr) {
+		getHour(s,u.getId(),hourLists);
+	 }
+	 
+	 //保存工时
+	 this.hoursservice.addHoursManager(hourLists);
+	 return "save";
+}
+/**
+ *  
+ * @param date 
+ * @return
+ */
+public String getChinaWeekdaysofdate(String date){
+	String weeks[]=new String[]{"日","一","二","三","四","五","六"};
+	String []temp=null;
+	if(date.indexOf("-")>0){
+		temp=date.split("-");
+	}
+Calendar cal=new GregorianCalendar(new Integer(temp[0]).intValue(), new Integer(temp[1]).intValue()-1,new Integer(temp[2]).intValue());
+	int week=cal.get(Calendar.DAY_OF_WEEK);
+	return weeks[week-1];
+}
+/**
+ * 
+ */
+public int getmonthdays(String date){
+	String tem[]=date.split("-");
+	int  year=Integer.parseInt(tem[0]);
+	int month=Integer.parseInt(tem[1]);
+		int arr[]=new int[]{31,28,31,30,31,30,31,31,30,31,30,31};
+			if((year%400==0||year%100!=0)&&(year%4==0)){
+				arr[1]=29;
+			
+	
+}
+			return arr[month-1];
+}
+
+public void getHour(String ss,int userid, List hourLists){
+	String date=null;
+    String[] arr=ss.split(",");
+    if(null!=arr[0]&&!"".equals(arr[0])){
+    date=arr[0].toString();
+    for(int i=1;i<arr.length;i++){
+		  Hour h=new Hour();
+		  h.setTodaydate(date);
+		  h.setItmeid(Integer.parseInt(arr[i].toString()));
+		  int  a=++i;
+		
+		  if("".equals(arr[a].trim())||null==arr[a].trim()){
+			  h.setHour("0");
+		  }else{ if(isNumeric(arr[a])){
+		  h.setHour(arr[a]);
+		  }else{
+			h.setHour("0");
+		  }
+		  }
+		  h.setUserid(userid);
+		  hourLists.add(h);
+	}
+    
+}else{
+	date=hoursservice.getnowDateManager();
+	String checkdate=date.split("-")[0].toString()+"-"+(Integer.parseInt(date.split("-")[1].toString()))+"-"+"0";
+	for(int i=1;i<arr.length;i++){
+		Hour h=new Hour();
+		h.setTodaydate(checkdate);
+		h.setItmeid(Integer.parseInt(arr[i].toString()));
+		int a=++i;
+		if("".equals(arr[a].trim())||null==arr[a].trim()){
+			h.setHour("0");
+		}else{
+			if(isNumeric(arr[a])){
+				h.setHour(arr[a]);
+			}else{
+				h.setHour("0");
+			};
+		
+		}
+		//h.setHour(arr[++i]);
+		h.setUserid(userid);
+		 hourLists.add(h);
+	}
+}
+}
+public String update() throws ParseException{
+	HttpServletRequest request = ServletActionContext.getRequest();
+	User u=(User) request.getSession().getAttribute("login");
+	String date=hoursservice.getnowDateManager();
+	int monthdays=getmonthdays(date);//
+	Calendar c1 = Calendar.getInstance();
+	SimpleDateFormat   df1  =new   SimpleDateFormat("yyyy-MM-dd");  
+	String dateend=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+monthdays;
+    Date   cDate1   =   df1.parse(dateend);   
+    c1.setTime(cDate1);
+    int size=(c1.get(Calendar.WEEK_OF_MONTH)-1);//获得本月有几周
+       week=request.getParameter("week").toString();
+       startdate=request.getParameter("startdate");
+       String endtime="";
+       String starttime="";
+       if(week.equals("0")){
+    	   endtime=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+"0"+startdate;
+    	   starttime=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+"01";
+       }else if(Integer.parseInt(week)==size){
+    	   endtime=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+(monthdays+1);
+    	   starttime=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+startdate;
+       }else{
+    	   String star="";
+    	   if(Integer.parseInt(startdate)<=9){
+    		   startdate="0"+startdate;
+    	   }
+    	   if(Integer.parseInt(startdate)-7<=9){
+    		   star="0"+(Integer.parseInt(startdate)-7);
+    	   }else{
+    		   star=""+(Integer.parseInt(startdate)-7);
+    	   }
+    	   starttime=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+star;
+    	   endtime=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+(Integer.parseInt(startdate));
+       }
+       
+       hoursservice.deleteHouserbyTime(u.getId(), starttime, endtime);//删除
+       String ss=request.getParameter("stringarr").toString();//
+       String[] arr=ss.split("\\|");
+       List hourLists = new ArrayList();
+       for(String s : arr) {
+      	 getHour(s,u.getId(),hourLists);
+       }
+       
+      //修改工时
+      this.hoursservice.addHoursManager(hourLists);
+	  return "update";
+}
+/**
+ * 导出工时方法
+ * @return
+ */
+@SuppressWarnings("null")
+public String importExcel(){
+HttpServletRequest request = ServletActionContext.getRequest();
+String user=request.getParameter("user");
+String item=request.getParameter("item");
+String date1=hoursservice.getnowDateManager();
+String date=request.getParameter("date");
+int monthdays = 0;
+
+if(date==null||date.equals("")){
+	
+	monthdays = getmonthdays(date1);
+}else{
+	date1 = date1.split("-")[0].toString()+"-"+date;
+	monthdays = getmonthdays(date1);
+}
+String [] arr=new String[2];
+String datetime="";
+
+if(null!=date&&!"".equals(date)){
+	if(Integer.parseInt(date)<=9){
+		datetime="0"+date;
+	}else{
+		datetime=date;
+	}
+	//monthdays=getmonthdays(date1.split("-")[0].toString()+"-"+date);
+	arr[0]=date1.split("-")[0].toString()+"-"+datetime+"-"+"01";
+	arr[1]=date1.split("-")[0].toString()+"-"+datetime+"-"+monthdays;
+}
+int userhour=0;//用于存放一个所有的工时
+int itmehour=0;
+	List hourlist=new ArrayList();
+	List itemhourlist=new ArrayList();
+	List userhourlist=new ArrayList();
+	List listitem=new ArrayList();//用于存放所有的项目
+	List userlit=new ArrayList();//用于存放所有的的用户
+	User u=(User) request.getSession().getAttribute("login");
+	HttpServletResponse response = ServletActionContext.getResponse();
+	ActionContext.getContext().getActionInvocation().getProxy().setExecuteResult(false);
+	response.setContentType("application/vnd.ms-excel;charset=utf-8");
+	response.setHeader("Pragma","No-cache");
+	response.setHeader("Cache-Control","no-cache");
+	response.setDateHeader("Expires", 0);
+	//wl 查询所有一个人一项目的所有工时
+	Map hourMap = hoursservice.getHourByItemUser(arr);
+	//---------------------------
+	//当人员为空，项目为空，时间为空时
+	if((null==user||"".equals(user))&&(null==item||"".equals(item))){
+	//PageModel p=itemService.findAllItem(null);//查询所有的项目id
+	List list=hoursservice.getallitem();
+	if(null!=list||0!=list.size()){
+		for(int i=0;i<list.size();i++){
+			 Item t=(Item)list.get(i);
+				Map m=new HashMap();
+				m.put("key", t.getItemname());
+				m.put("value", t.getId());
+				listitem.add(m);
+			
+		}
+	}//把所有的项目id，放到listitem中，
+	List userlist=hoursservice.getalluser();//获得所有用户
+	if(null!=userlist||0!=userlist.size()){
+		for(int i=0;i<userlist.size();i++){
+			User u1=(User) userlist.get(i);
+			Map m=new HashMap();
+			m.put("key", u1.getUsername());
+			m.put("value", u1.getId());
+			userlit.add(m);
+		}
+	//把所有的用户都放到uerlit中,
+	for(int i=0;i<userlist.size();i++){
+		//获得所有数据，用户和项目的交集。
+		//int itemhour=0;
+		User u1=(User) userlist.get(i);
+		for(int j=0;j<list.size();j++){//一個人所有項目的總工時
+			Item id= (Item) list.get(j);//获得项目id
+			
+			//hourlist.add(hoursservice.gethoursByuseriditemid(u1.getId(),id.getId(),arr));//一個項目一個人花費的總工時。
+			int hour =(Integer)(hourMap.get((id.getId()+""+u1.getId()).trim())==null?0:hourMap.get((id.getId()+""+u1.getId()).trim())); 
+			hourlist.add(hour);
+		    //itemhour+=hoursservice.gethoursByuseriditemid(u1.getId(),id.getId(),arr);
+			//userhour+=hoursservice.gethoursByuseriditemid(u1.getId(),id.getId(),arr);
+			userhour+=hour;
+			
+			
+		}
+		for(int z=0;z<list.size();z++){
+			int itemhour=0;
+			Item id= (Item) list.get(z);
+			for(int k=0;k<userlist.size();k++){
+				User u2=(User) userlist.get(k);
+				//itemhour+=hoursservice.gethoursByuseriditemid(u2.getId(),id.getId(),arr);
+				int hour =(Integer)(hourMap.get((id.getId()+""+u2.getId()).trim())==null?0:hourMap.get((id.getId()+""+u2.getId()).trim()));
+				itemhour+=hour;
+			}
+			itemhourlist.add(itemhour);
+		}
+		//itemhourlist.add(itemhour);
+		/*List listuser=hoursservice.getallHoursManager(u1.getId(),arr);//统计一个人所有的工时，项目不包括在内
+		for(int z=0;z<listuser.size();z++){
+			Hour u2=(Hour) listuser.get(z);
+			userhour+=Integer.parseInt(u2.getHour());
+		}*/
+		hourlist.add(userhour);
+		userhourlist.add(hourlist);//一个人所有项目的工时存放在这个list里面
+		//userhourlist.add(userhour);//添加一个所有项目的总工时。
+		hourlist=new ArrayList();//清空
+		userhour=0;//清空
+		
+	}
+	userhourlist.add(itemhourlist);
+	itemhourlist=new ArrayList();
+	}
+	//用户和项目都不为空时
+	}else if((null!=user&&!"".equals(user))&&(null!=item&&!"".equals(item))){
+	User use=userService.findUserById(Integer.parseInt(user));
+	
+	Item i=itemService.findItemById(Integer.parseInt(item));
+	Map m=new HashMap();
+	m.put("key", i.getItemname());
+	m.put("value", i.getId());
+	listitem.add(m);
+	m=new HashMap();
+	m.put("key", use.getUsername());
+	m.put("value", use.getId());
+	userlit.add(m);
+	hourlist.add(hoursservice.gethoursByuseriditemid(use.getId(),i.getId(),arr));
+	int itemhour=hoursservice.gethoursByuseriditemid(use.getId(),i.getId(),arr);
+	itemhourlist.add(itemhour);
+	
+	userhourlist.add(hourlist);
+	
+	userhourlist.add(itemhourlist);
+	//用户不为空，项目为空时
+	}else if((null!=user||!"".equals(user))&&(null==item||"".equals(item))){
+		User use=userService.findUserById(Integer.parseInt(user));
+		Map m=new HashMap();
+		m.put("key", use.getUsername());
+		m.put("value", use.getId());
+		userlit.add(m);
+	/*	PageModel p=itemService.findAllItem(null);//查询所有的项目id
+		List list=p.getDatas();*/
+		List list=hoursservice.getallitem();
+		if(null!=list||0!=list.size()){
+			for(int i=0;i<list.size();i++){
+				 Item t=(Item)list.get(i);
+					Map m1=new HashMap();
+					m1.put("key", t.getItemname());
+					m1.put("value", t.getId());
+					listitem.add(m1);
+				
+			}
+		}//把所有的项目id，放到listitem中，
+		
+		for(int j=0;j<list.size();j++){//一個人所有項目的總工時
+			int itemhour=0;
+			Item id= (Item) list.get(j);//获得项目id
+			int hour =(Integer)(hourMap.get((id.getId()+""+use.getId()).trim())==null?0:hourMap.get((id.getId()+""+use.getId()).trim()));
+			//hourlist.add(hoursservice.gethoursByuseriditemid(use.getId(),id.getId(),arr));//一個項目一個人花費的總工時。
+			//userhour+=hoursservice.gethoursByuseriditemid(use.getId(),id.getId(),arr);
+			//itemhour+=hoursservice.gethoursByuseriditemid(use.getId(),id.getId(),arr);
+			//itemhourlist.add(itemhour);
+			hourlist.add(hour);
+			userhour+=hour;
+			itemhour+=hour;
+			itemhourlist.add(hour);
+		}
+		/*List listuser=hoursservice.getallHoursManager(use.getId(),arr);//统计一个人所有的工时，项目不包括在内
+		for(int z=0;z<listuser.size();z++){
+			Hour u2=(Hour) listuser.get(z);
+			userhour+=Integer.parseInt(u2.getHour());
+		}*/
+		hourlist.add(userhour);
+		userhourlist.add(hourlist);
+		/*for(int k=0;k<list.size();k++){//存放一个项目所有用户所有的工时
+			Item id= (Item) list.get(k);
+			itemhourlist.add(hoursservice.getHoursbyItemid(id.getId(),arr));
+		}*/
+		
+		userhourlist.add(itemhourlist);
+	//项目不为空人员为空时
+	}else if((null!=item||!"".equals(item))&&(null==user||"".equals(user))){
+		
+		List userlist=hoursservice.getalluser();//获得所有用户
+		if(null!=userlist||0!=userlist.size()){
+			for(int i=0;i<userlist.size();i++){
+				User u1=(User) userlist.get(i);
+				Map m=new HashMap();
+				m.put("key", u1.getUsername());
+				m.put("value", u1.getId());
+				userlit.add(m);
+			}
+		}
+		Item ite=itemService.findItemById(Integer.parseInt(item));
+		Map m=new HashMap();
+		m.put("key", ite.getItemname());
+		m.put("value", ite.getId());
+		listitem.add(m);
+		int itemhour=0;
+		for(int i=0;i<userlist.size();i++){
+			
+			//获得所有数据，用户和项目的交集。
+			User u1=(User) userlist.get(i);
+			int hour =(Integer)(hourMap.get((Integer.parseInt(item)+""+u1.getId()).trim())==null?0:hourMap.get((Integer.parseInt(item)+""+u1.getId()).trim()));
+			//hourlist.add(hoursservice.gethoursByuseriditemid(u1.getId(),Integer.parseInt(item),arr));
+			//userhour+=hoursservice.gethoursByuseriditemid(u1.getId(),Integer.parseInt(item),arr);//一個項目一個人花費的總工時。
+			//itemhour+=hoursservice.gethoursByuseriditemid(u1.getId(),Integer.parseInt(item),arr);
+			hourlist.add(hour);
+			userhour+=hour;
+			itemhour+=hour;
+			
+			/*//List listuser=hoursservice.getallHoursManager(u1.getId(),arr);//统计一个人所有的工时，项目不包括在内
+			for(int z=0;z<listuser.size();z++){
+				Hour u2=(Hour) listuser.get(z);
+				userhour+=Integer.parseInt(u2.getHour());
+			}*/
+			hourlist.add(userhour);
+			userhourlist.add(hourlist);//一个人所有项目的工时存放在这个list里面
+			//userhourlist.add(userhour);//添加一个所有项目的总工时。
+			hourlist=new ArrayList();//清空
+			userhour=0;//清空
+			
+		}
+		itemhourlist.add(itemhour);
+		//itemhourlist.add(hoursservice.getHoursbyItemid(Integer.parseInt(item),arr));
+		userhourlist.add(itemhourlist);
+		
+		
+	}
+	JxlExceptor.getInstence().getExcerByuser1("hours",listitem,userlit,userhourlist,response);
+	return null;
+}
+
+
+   public String excelhoursByYear(){
+	   
+	   HttpServletRequest request = ServletActionContext.getRequest();
+	   String user=request.getParameter("user");
+	   String item=request.getParameter("item");
+	   String date=request.getParameter("date");
+	   String [] arr=new String[2];
+	   Calendar cal = Calendar.getInstance();
+	   if(date==null || date.equals("")){
+		   arr[0]=cal.get(Calendar.YEAR)+"-01-01";
+		   arr[1]=cal.get(Calendar.YEAR)+"-12-31";
+	   }else{
+		   arr[0]=date+"-01-01";
+		   arr[1]=date+"-12-31";
+	   }
+	   
+	    int userhour=0;//用于存放一个所有的工时
+	    int itmehour=0;
+	   	List hourlist=new ArrayList();
+	   	List itemhourlist=new ArrayList();
+	   	List userhourlist=new ArrayList();
+	   	List listitem=new ArrayList();//用于存放所有的项目
+	   	List userlit=new ArrayList();//用于存放所有的的用户
+	   	User u=(User) request.getSession().getAttribute("login");
+	   	HttpServletResponse response = ServletActionContext.getResponse();
+	   	ActionContext.getContext().getActionInvocation().getProxy().setExecuteResult(false);
+	   	response.setContentType("application/vnd.ms-excel;charset=utf-8");
+	   	response.setHeader("Pragma","No-cache");
+	   	response.setHeader("Cache-Control","no-cache");
+	   	response.setDateHeader("Expires", 0);
+	   	//wl 查询所有一个人一项目的所有工时
+	   	Map hourMap = hoursservice.getHourByItemUser(arr);
+	   	//---------------------------
+	   	//当人员为空，项目为空，时间为空时
+	   	if((null==user||"".equals(user))&&(null==item||"".equals(item))){
+	   	List list=hoursservice.getallitem();
+	   	if(null!=list||0!=list.size()){
+	   		for(int i=0;i<list.size();i++){
+	   			 Item t=(Item)list.get(i);
+	   				Map m=new HashMap();
+	   				m.put("key", t.getItemname());
+	   				m.put("value", t.getId());
+	   				listitem.add(m);
+	   			
+	   		}
+	   	}//把所有的项目id，放到listitem中，
+	   	List userlist=hoursservice.getalluser();//获得所有用户
+	   	if(null!=userlist||0!=userlist.size()){
+	   		for(int i=0;i<userlist.size();i++){
+	   			User u1=(User) userlist.get(i);
+	   			Map m=new HashMap();
+	   			m.put("key", u1.getUsername());
+	   			m.put("value", u1.getId());
+	   			userlit.add(m);
+	   		}
+	   	//把所有的用户都放到uerlit中,
+	   	for(int i=0;i<userlist.size();i++){
+	   		//获得所有数据，用户和项目的交集。
+	   		User u1=(User) userlist.get(i);
+	   		for(int j=0;j<list.size();j++){//一個人所有項目的總工時
+	   			
+	   			Item id= (Item) list.get(j);//获得项目id
+	   			int hour =(Integer)(hourMap.get((id.getId()+""+u1.getId()).trim())==null?0:hourMap.get((id.getId()+""+u1.getId()).trim())); 
+	   			hourlist.add(hour);
+	   			userhour+=hour;
+	   			
+	   		}
+	   		for(int z=0;z<list.size();z++){
+	   			int itemhour=0;
+	   			Item id= (Item) list.get(z);
+	   			for(int k=0;k<userlist.size();k++){
+	   				User u2=(User) userlist.get(k);
+	   				int hour =(Integer)(hourMap.get((id.getId()+""+u2.getId()).trim())==null?0:hourMap.get((id.getId()+""+u2.getId()).trim()));
+	   				itemhour+=hour;
+	   			}
+	   			itemhourlist.add(itemhour);
+	   		}
+
+	   		hourlist.add(userhour);
+	   		userhourlist.add(hourlist);//一个人所有项目的工时存放在这个list里面
+	   		hourlist=new ArrayList();//清空
+	   		userhour=0;//清空
+	   		
+	   	}
+	   	userhourlist.add(itemhourlist);
+	   	itemhourlist=new ArrayList();
+	   	}
+	   	//用户和项目都不为空时
+	   	}else if((null!=user&&!"".equals(user))&&(null!=item&&!"".equals(item))){
+	   	User use=userService.findUserById(Integer.parseInt(user));
+	   	
+	   	Item i=itemService.findItemById(Integer.parseInt(item));
+	   	Map m=new HashMap();
+	   	m.put("key", i.getItemname());
+	   	m.put("value", i.getId());
+	   	listitem.add(m);
+	   	m=new HashMap();
+	   	m.put("key", use.getUsername());
+	   	m.put("value", use.getId());
+	   	userlit.add(m);
+	   	hourlist.add(hoursservice.gethoursByuseriditemid(use.getId(),i.getId(),arr));
+	   	int itemhour=hoursservice.gethoursByuseriditemid(use.getId(),i.getId(),arr);
+	   	itemhourlist.add(itemhour);
+	   	
+	   	userhourlist.add(hourlist);
+	   	
+	   	userhourlist.add(itemhourlist);
+	   	//用户不为空，项目为空时
+	   	}else if((null!=user||!"".equals(user))&&(null==item||"".equals(item))){
+	   		User use=userService.findUserById(Integer.parseInt(user));
+	   		Map m=new HashMap();
+	   		m.put("key", use.getUsername());
+	   		m.put("value", use.getId());
+	   		userlit.add(m);
+	   		List list=hoursservice.getallitem();
+	   		if(null!=list||0!=list.size()){
+	   			for(int i=0;i<list.size();i++){
+	   				 Item t=(Item)list.get(i);
+	   					Map m1=new HashMap();
+	   					m1.put("key", t.getItemname());
+	   					m1.put("value", t.getId());
+	   					listitem.add(m1);
+	   				
+	   			}
+	   		}//把所有的项目id，放到listitem中，
+	   		
+	   		for(int j=0;j<list.size();j++){//一個人所有項目的總工時
+	   			int itemhour=0;
+	   			Item id= (Item) list.get(j);//获得项目id
+	   			int hour =(Integer)(hourMap.get((id.getId()+""+use.getId()).trim())==null?0:hourMap.get((id.getId()+""+use.getId()).trim()));
+	   			hourlist.add(hour);
+	   			userhour+=hour;
+	   			itemhour+=hour;
+	   			itemhourlist.add(hour);
+	   		}
+	   		hourlist.add(userhour);
+	   		userhourlist.add(hourlist);
+	   		userhourlist.add(itemhourlist);
+	   	//项目不为空人员为空时
+	   	}else if((null!=item||!"".equals(item))&&(null==user||"".equals(user))){
+	   		
+	   		List userlist=hoursservice.getalluser();//获得所有用户
+	   		if(null!=userlist||0!=userlist.size()){
+	   			for(int i=0;i<userlist.size();i++){
+	   				User u1=(User) userlist.get(i);
+	   				Map m=new HashMap();
+	   				m.put("key", u1.getUsername());
+	   				m.put("value", u1.getId());
+	   				userlit.add(m);
+	   			}
+	   		}
+	   		Item ite=itemService.findItemById(Integer.parseInt(item));
+	   		Map m=new HashMap();
+	   		m.put("key", ite.getItemname());
+	   		m.put("value", ite.getId());
+	   		listitem.add(m);
+	   		int itemhour=0;
+	   		for(int i=0;i<userlist.size();i++){
+	   			
+	   			//获得所有数据，用户和项目的交集。
+	   			User u1=(User) userlist.get(i);
+	   			int hour =(Integer)(hourMap.get((Integer.parseInt(item)+""+u1.getId()).trim())==null?0:hourMap.get((Integer.parseInt(item)+""+u1.getId()).trim()));
+	   			hourlist.add(hour);
+	   			userhour+=hour;
+	   			itemhour+=hour;
+
+	   			hourlist.add(userhour);
+	   			userhourlist.add(hourlist);//一个人所有项目的工时存放在这个list里面
+	   			hourlist=new ArrayList();//清空
+	   			userhour=0;//清空
+	   			
+	   		}
+	   		itemhourlist.add(itemhour);
+	   		userhourlist.add(itemhourlist);
+	   		
+	   		
+	   	}
+	   	JxlExceptor.getInstence().getExcerByuser1("hours",listitem,userlit,userhourlist,response);
+	   	return null;
+   }
+@SuppressWarnings("null")
+public String toExceljsp(){
+	HttpServletRequest request = ServletActionContext.getRequest();
+	User u=(User) request.getSession().getAttribute("login");
+	//PageModel p=itemService.findAllItem(null);//查询所有的项目id
+	List list=hoursservice.getallitem();
+	List userlist=hoursservice.getalluser();//获得所有用户
+	List userlit=new ArrayList();
+	List itemlist=new ArrayList();
+	if(null!=userlist||0!=userlist.size()){
+	for(int i=0;i<userlist.size();i++){
+		User u1=(User) userlist.get(i);
+		Map m=new HashMap();
+		m.put("key", u1.getUsername());
+		m.put("value", u1.getId());
+		userlit.add(m);
+	}
+	}
+	if(null!=list||0!=list.size()){
+		for(int i=0;i<list.size();i++){
+			 Item t=(Item) list.get(i);
+				Map m=new HashMap();
+				m.put("key", t.getItemname());
+				m.put("value", t.getId());
+				itemlist.add(m);
+			
+		}
+	}
+	
+	List riqilist=new ArrayList();
+	for(int i=0;i<12;i++){
+		Map m=new HashMap();
+		m.put("key",i+1);
+		m.put("value",i+1);
+		riqilist.add(m);
+	}
+	request.setAttribute("itmelist",itemlist);
+	request.setAttribute("riqi",riqilist);
+	request.setAttribute("userlit", userlit);
+	return "searchexcel";
+}
+public String getallHoursready() throws ParseException{
+	
+	HttpServletRequest request = ServletActionContext.getRequest();
+	String date=hoursservice.getnowDateManager();
+	int monthdays=getmonthdays(date);//
+	int len=7;
+	request.setAttribute("date", date.split("-")[1].toString());
+	
+	String weekdate="";//
+    	String arr[]={"week1","week2","week3","week4","week5","week6"};
+    	Calendar c1 = Calendar.getInstance();
+		SimpleDateFormat   df1  =new   SimpleDateFormat("yyyy-MM-dd");  
+		String dateend=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+monthdays;
+        Date   cDate1   =   df1.parse(dateend);   
+        c1.setTime(cDate1);
+	int size=(c1.get(Calendar.WEEK_OF_MONTH));//获得本月有
+    	for(int z=0;z<size;z++){
+    		Map m=new HashMap();
+    		m.put("key",arr[z]);
+    		m.put("value", z);
+    		weeklist.add(m);
+    		}
+    	if(null==request.getParameter("week")||"".equals(request.getParameter("week"))){
+    		//week=String.valueOf(0);//
+    		Calendar c = Calendar.getInstance();
+    		SimpleDateFormat   df   =new   SimpleDateFormat("yyyy-MM-dd");  
+            Date   cDate   =   df.parse(date);   
+            c.setTime(cDate);
+    	week=""+(c.get(Calendar.WEEK_OF_MONTH)-1);
+    	}else{
+    		week=request.getParameter("week").toString();
+    		
+    	}
+    	if(null==request.getParameter("startdate")||"".equals(request.getParameter("startdate"))){
+    		startdate=date.split("-")[2].toString();//
+    		if("01".equals(startdate)){
+    			String date1="";
+    			weekdate=getChinaWeekdaysofdate(date);
+    			if(!"日".equals(weekdate))
+        		{
+        			startdate="1";
+        			if("一".equals(weekdate)){
+        				len=6;
+        				
+        			}
+        			if("二".equals(weekdate)){
+        				len=5;
+        				
+        			}
+        			if("三".equals(weekdate)){
+        				len=4;
+        			}
+        			if("四".equals(weekdate)){
+        				len=3;
+        			}
+        			if("五".equals(weekdate)){
+        				len=2;
+        			}
+        			if("六".equals(weekdate)){
+        				len=1;
+        			} 
+        		  for(int k=0;k<7-len;k++){
+        			  daylist.add(null);//
+        		  }
+        		  for(int z=0;z<len;z++){
+        			 
+        			  if(Integer.parseInt(startdate)+z<9){
+        			  date1=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+"0"+(Integer.parseInt(startdate)+z);
+        			  }else{
+        				date1=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+(Integer.parseInt(startdate)+z);
+        			  }
+        				  
+        			  Map map=new HashMap();
+        				map.put("week",getChinaWeekdaysofdate(date1));
+        				map.put("day",date1);
+        			    daylist.add(map);
+        			   
+        		  }
+        		}
+    		}else{
+    			int d=Integer.parseInt(startdate);
+    			weekdate=getChinaWeekdaysofdate(date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-01");
+    			if(!"日".equals(weekdate))
+        		{
+        			startdate="1";
+        			if("一".equals(weekdate)){
+        				len=6;
+        				
+        			}
+        			if("二".equals(weekdate)){
+        				len=5;
+        				
+        			}
+        			if("三".equals(weekdate)){
+        				len=4;
+        			}
+        			if("四".equals(weekdate)){
+        				len=3;
+        			}
+        			if("五".equals(weekdate)){
+        				len=2;
+        			}
+        			if("六".equals(weekdate)){
+        				len=1;
+        			} 
+        			}
+    			int d1=0;
+    			if(week.equals("0")){
+    				startdate="1";
+    			}
+    			if(week.equals("1")){
+    				d1=len+1;
+    				startdate=""+d1;
+    			}
+    			if(week.equals("2")){
+    				d1=len+7+1;
+    				startdate=""+d1;
+    			}
+    			if(week.equals("3")){
+    				d1=len+7*2+1;
+    				startdate=""+d1;
+    			}
+    			if(week.equals("4")){
+    				d1=len+7*3+1;
+    				startdate=""+d1;
+    			}
+    			if(week.equals("0")){
+    				
+    			String date1="";
+    				  for(int k=0;k<7-len;k++){
+            			  daylist.add(null);
+            		  }
+            		  for(int z=0;z<len;z++){
+            			 
+            			  if(Integer.parseInt(startdate)+z<=9){
+            			  date1=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+"0"+(Integer.parseInt(startdate)+z);
+            			  }else{
+            				date1=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+(Integer.parseInt(startdate)+z);
+            			  }
+            				  
+            			  Map map=new HashMap();
+            				map.put("week",getChinaWeekdaysofdate(date1));
+            				map.put("day",date1);
+            			    daylist.add(map);
+            		  }
+    		}else{
+    			len=7;
+    			for(int i=Integer.parseInt(startdate);i<Integer.parseInt(startdate)+7;i++){
+    				if(Integer.parseInt(startdate)+len<=monthdays){
+    					String date1="";
+    					if(i<=9){
+    						date1=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+"0"+(i);
+    					}else{
+    				 date1=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+(i);
+    					}
+    				Map map=new HashMap();
+    				map.put("week",getChinaWeekdaysofdate(date1));
+    				map.put("day",date1);
+    			    daylist.add(map);
+    			}else{
+    				//String date1=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+i;
+    				if(i<=monthdays){
+    					String date2=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+i;
+    					Map map=new HashMap();
+    					map.put("week",getChinaWeekdaysofdate(date2));
+    					map.put("day",date2);
+    				    daylist.add(map);
+    				}
+    				
+    			}
+    			}
+    		}
+    		}
+    	}else{
+    		 startdate=request.getParameter("startdate");
+    			if("01".equals(startdate)){
+        			String date1="";
+        			weekdate=getChinaWeekdaysofdate(date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-01");
+        			if(!"日".equals(weekdate))
+            		{
+            			startdate="1";
+            			if("一".equals(weekdate)){
+            				len=6;
+            				
+            			}
+            			if("二".equals(weekdate)){
+            				len=5;
+            				
+            			}
+            			if("三".equals(weekdate)){
+            				len=4;
+            			}
+            			if("四".equals(weekdate)){
+            				len=3;
+            			}
+            			if("五".equals(weekdate)){
+            				len=2;
+            			}
+            			if("六".equals(weekdate)){
+            				len=1;
+            			} 
+            		  for(int k=0;k<7-len;k++){
+            			  daylist.add(null);
+            		  }
+            		  for(int z=0;z<len;z++){
+            			 
+            			  if(Integer.parseInt(startdate)+z<=9){
+            			  date1=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+"0"+(Integer.parseInt(startdate)+z);
+            			  }else{
+            				date1=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+(Integer.parseInt(startdate)+z);
+            			  }
+            				  
+            			  Map map=new HashMap();
+            				map.put("week",getChinaWeekdaysofdate(date1));
+            				map.put("day",date1);
+            			    daylist.add(map);
+            			   
+            		  }
+            		}else{
+        		
+    		if(Integer.parseInt(startdate)<=monthdays){
+    			int total=0;
+        		if(week.equals("0")){
+        			total=len*(Integer.parseInt(week)+1)+1;
+        		}else{
+        			total=len*(Integer.parseInt(week)+1);
+        		}
+			for(int i=Integer.parseInt(startdate);i<total;i++){
+				if(Integer.parseInt(startdate)+len<=monthdays){
+				
+					if(i+1<=9){
+						date1=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+"0"+(i);
+					}else{
+				 date1=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+(i);
+					}
+				Map map=new HashMap();
+				map.put("week",getChinaWeekdaysofdate(date1));
+				map.put("day",date1);
+			    daylist.add(map);
+			}else{
+				//String date1=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+i;
+				if(i<=monthdays){
+					String date2=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+i;
+					Map map=new HashMap();
+					map.put("week",getChinaWeekdaysofdate(date2));
+					map.put("day",date2);
+				    daylist.add(map);
+				}
+				
+			}
+			}
+    	}
+    	}
+    			}else{
+    				String date1="";
+    				if(Integer.parseInt(startdate)<=monthdays){
+    		    		
+    					for(int i=Integer.parseInt(startdate);i<Integer.parseInt(startdate)+7;i++){
+    						if(Integer.parseInt(startdate)+len<=monthdays){
+    						
+    							if(i<=9){
+    								date1=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+"0"+(i);
+    							}else{
+    						 date1=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+(i);
+    							}
+    						Map map=new HashMap();
+    						map.put("week",getChinaWeekdaysofdate(date1));
+    						map.put("day",date1);
+    					    daylist.add(map);
+    					}else{
+    						//String date1=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+i;
+    						if(i<=monthdays){
+    							String date2=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+i;
+    							Map map=new HashMap();
+    							map.put("week",getChinaWeekdaysofdate(date2));
+    							map.put("day",date2);
+    						    daylist.add(map);
+    						}
+    						
+    					}
+    					}
+    		    	}
+    			}
+    	}
+    	
+    	if(monthdays==28){
+    		if("日".equals(weekdate)){
+
+    			weeklist.remove(4);
+    		}
+    	}
+	
+	if(Integer.parseInt(startdate)<=9){//
+		startdate="0"+startdate;
+	}
+	String enddate1="";
+	if("01".equals(startdate)){
+		 enddate=Integer.parseInt(startdate)+len*(Integer.parseInt(week)+1);
+		 
+		}else{
+			if(enddate<=monthdays){
+				if(enddate==monthdays)
+				enddate=monthdays;
+				if(enddate+7<=monthdays)
+					enddate=Integer.parseInt(startdate)+7;
+				}
+			}
+			
+	if(enddate<=9){
+		enddate1=("0"+enddate);
+	}else{
+		enddate1=enddate+"";
+	}
+	String starttime=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+startdate;	
+	String endtime="";
+	
+	//List<List> rilist=new ArrayList<List>();
+	if(enddate<=monthdays){
+	endtime=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+enddate1;
+	}else{
+		 endtime=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+(monthdays+1);
+		 enddate=Integer.parseInt(startdate);
+	}
+	//System.out.println(starttime+"--"+endtime);
+	List list1=new ArrayList();
+	List list4=new ArrayList();
+	List list2=new ArrayList();
+	List list5=new ArrayList();
+	User u=(User) request.getSession().getAttribute("login");
+	List list=hoursservice.getItmesidByuserid(u.getId());
+	if(null!=list&&0!=list.size()){
+	for(int i=0;i<list.size();i++){
+		ItemUser m=(ItemUser) list.get(i);
+		 Item t=itemService.findItemById(m.getItemid());
+		 Map mm=new HashMap();
+		 mm.put("key", t.getItemname());
+		 mm.put("value", t.getId());
+		 
+		list4.add(mm);
+		 List list3=hoursservice.getweekhoursManager(t.getId(),u.getId(),starttime,endtime);
+			
+		if(list3.size()==0||null==list3){
+			for(int z=0;z<7;z++){
+				list4.add("0");
+				
+			}
+		}else{
+			if(Integer.parseInt(startdate)+7>monthdays){
+				for(int j=0;j<list3.size();j++){
+					list4.add(list3.get(j));
+					
+				}
+				for(int z=0;z<7-list3.size();z++){
+					list4.add("0");
+				}
+			}
+			
+			for(int z =0;z<7-len;z++){
+				list4.add("0");
+			}
+		for(int j=0;j<list3.size();j++){
+			list4.add(list3.get(j));
+			
+		}
+		}
+		list5.add(list4);
+		list4=new ArrayList();
+		
+		
+	}
+	list1.add(list5);
+	int start=Integer.parseInt(startdate);
+	List cost=hoursservice.getHourByitemslistbyuseridweek(u.getId(), starttime, endtime);//根据用户获得所有的这一周的信息。
+	int time=(cost.size()/list.size());
+	String kaishi="";
+	if(start==1){
+		for(int i=0;i<7-time;i++){
+			list2.add(0);
+		}
+		for(int j=0;j<time;j++){
+			if(start+j<=9){
+				kaishi="0"+(start+j);
+			}else{
+				kaishi=""+(start+j);
+			}
+			String  timetring=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+kaishi;
+			list2.add(hoursservice.getHourByuseridtime(u.getId(),timetring));
+		}
+		}else if(start+7<=monthdays){
+			for(int j=0;j<time;j++){
+				if(start+j<=9){
+					kaishi="0"+(start+j);
+				}else{
+					kaishi=""+(start+j);
+				}
+				String  timetring=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+kaishi;
+				list2.add(hoursservice.getHourByuseridtime(u.getId(),timetring));
+			}
+		}else {
+			for(int j=0;j<time;j++){
+				if(start+j<=9){
+					kaishi="0"+(start+j);
+				}else{
+					kaishi=""+(start+j);
+				}
+				String  timetring=date.split("-")[0].toString()+"-"+date.split("-")[1].toString()+"-"+kaishi;
+				list2.add(hoursservice.getHourByuseridtime(u.getId(),timetring));
+			}
+			for(int i=0;i<7-time;i++){
+				list2.add(0);
+			}
+			
+		}
+	if(null==cost||0==cost.size()){
+		for(int i=0;i<7;i++){
+			list2.add(0);
+		}
+	}
+	list1.add(list2);
+	}
+	
+	request.setAttribute("list",list1);
+	request.setAttribute("username",u.getUsername());
+	request.setAttribute("week", week);
+	return "ready";
+}
+public String excelgongzi(){
+	HttpServletRequest request = ServletActionContext.getRequest();
+	String user=request.getParameter("user");
+	String item=request.getParameter("item");
+	String date1=hoursservice.getnowDateManager();
+	String date=request.getParameter("date");
+	int monthdays = 0;
+
+	if(date==null||date.equals("")){
+		
+		monthdays = getmonthdays(date1);
+	}else{
+		date1 = date1.split("-")[0].toString()+"-"+date;
+		monthdays = getmonthdays(date1);
+	}
+	String dwbili="43.3";
+	String bjbili="44.1";
+	String shbili="44.0";
+	int  butie=0;
+	String [] arr=new String[2];
+	String datetime="";
+	if(null!=date&&!"".equals(date)){
+		if(Integer.parseInt(date)<=9){
+			datetime="0"+date;
+		}else{
+			datetime=date;
+		}
+		arr[0]=date1.split("-")[0].toString()+"-"+datetime+"-"+"01";
+		arr[1]=date1.split("-")[0].toString()+"-"+datetime+"-"+monthdays;
+	}
+	int userhour=0;//用于存放一个所有的工时
+	int itmehour=0;
+		List hourlist=new ArrayList();
+		Float f=0.0f;
+		List itemhourlist=new ArrayList();
+		List userhourlist=new ArrayList();
+		List workmenylist=new ArrayList();
+		List hourmengylist=new ArrayList();
+		List listitem=new ArrayList();//用于存放所有的项目
+		List userlit=new ArrayList();//用于存放所有的的用户
+		User u=(User) request.getSession().getAttribute("login");
+		HttpServletResponse response = ServletActionContext.getResponse();
+		ActionContext.getContext().getActionInvocation().getProxy().setExecuteResult(false);
+		response.setContentType("application/vnd.ms-excel;charset=utf-8");
+		response.setHeader("Pragma","No-cache");
+		response.setHeader("Cache-Control","no-cache");
+		response.setDateHeader("Expires", 0);
+		//wl 先查询出所有人的工资
+		Map<String,Subsidy> subMap = this.hoursservice.getSubsidy();
+		//wl 查询所有一个人一项目的所有工时
+		Map hourMap = hoursservice.getHourByItemUser(arr);
+		//---------------------------
+		//当人员和项目都为空时
+		if((null==user||"".equals(user))&&(null==item||"".equals(item))){
+			/*PageModel p=itemService.findAllItem(null);//查询所有的项目id
+			List list=p.getDatas();*/
+			List list=hoursservice.getallitem();
+			if(null!=list||0!=list.size()){
+				for(int i=0;i<list.size();i++){
+					 Item t=(Item)list.get(i);
+						Map m=new HashMap();
+						m.put("key", t.getItemname());
+						m.put("value", t.getId());
+						listitem.add(m);
+					
+				}
+			}//把所有的项目id，放到listitem中，
+			List userlist=hoursservice.getalluser();//获得所有用户
+			if(null!=userlist||0!=userlist.size()){
+				for(int i=0;i<userlist.size();i++){
+					User u1=(User) userlist.get(i);
+					Map m=new HashMap();
+					m.put("key", u1.getUsername());
+					m.put("value", u1.getId());
+					userlit.add(m);
+				}
+				//把所有的用户都放到uerlit中,
+			for(int i=0;i<userlist.size();i++){//获得所有数据，用户和项目的交集。
+				User u1=(User) userlist.get(i);
+				butie=0;
+				Subsidy sub=subMap.get((u1.getId()+"").trim());
+                
+				if(null!=sub||"".equals(sub)){
+					  if(null!=sub.getSubsidy2()&&!"".equals(sub.getSubsidy2())){
+							butie+=Integer.parseInt(sub.getSubsidy2());
+						}
+		                  if(null!=sub.getSubsidy3()&&!"".equals(sub.getSubsidy3())){
+		  					butie+=Integer.parseInt(sub.getSubsidy3());
+		  				}
+		                  if(null!=sub.getSubsidy4()&&!"".equals(sub.getSubsidy4())){
+		  					butie+=Integer.parseInt(sub.getSubsidy4());
+		  				}
+		                  if(null!=sub.getSubsidy5()&&!"".equals(sub.getSubsidy4())){
+		  					butie+=Integer.parseInt(sub.getSubsidy5());
+		  				}
+		                  if(null!=sub.getSubsidy6()&&!"".equals(sub.getSubsidy6())){
+		  					butie+=Integer.parseInt(sub.getSubsidy6());
+		  				}
+		                  if(null!=sub.getSubsidy7()&&!"".equals(sub.getSubsidy7())){
+		  					butie+=Integer.parseInt(sub.getSubsidy7());
+		  				}
+		                  if(null!=sub.getSubsidy8()&&!"".equals(sub.getSubsidy8())){
+		  					butie+=Integer.parseInt(sub.getSubsidy8());
+		  				}
+		                  if(null!=sub.getSubsidy9()&&!"".equals(sub.getSubsidy9())){
+		  					butie+=Integer.parseInt(sub.getSubsidy9());
+		  				}
+		                  if(null!=sub.getSubsidy1()&&!"".equals(sub.getSubsidy1())){
+		  					butie+=Integer.parseInt(sub.getSubsidy1());
+		  				}
+		                  if(null!=sub.getSubsidy10()&&!"".equals(sub.getSubsidy10())){
+		  					butie+=Integer.parseInt(sub.getSubsidy10());
+		  				}
+				if(u1.getCensus().equals("hk")){
+					//获得港籍工人的时薪
+					f=(((Float.parseFloat(sub.getBasepay())*13)+(butie)*12))/DateUtil.getCurrAllYearHour();
+				}
+				if(u1.getCensus().equals("dw")){
+					//获得港籍工人的时薪
+					f=(((Float.parseFloat(sub.getBasepay())*13)+(butie)*12)+Float.parseFloat(sub.getBasepay())*Float.parseFloat(dwbili)/100*12)/DateUtil.getCurrAllYearHour();
+				}
+				if(u1.getCensus().equals("bj")){
+					f=(((Float.parseFloat(sub.getBasepay())*13)+(butie)*12)+Float.parseFloat(sub.getBasepay())*Float.parseFloat(bjbili)/100*12)/DateUtil.getCurrAllYearHour();
+				}
+				if(u1.getCensus().equals("sh")){
+					f=(((Float.parseFloat(sub.getBasepay())*13)+(butie)*12)+Float.parseFloat(sub.getBasepay())*Float.parseFloat(shbili)/100*12)/DateUtil.getCurrAllYearHour();
+				}
+				} 
+				workmenylist.add(f);
+				
+					
+				//计算工时
+				//int itemhour=0;
+				for(int j=0;j<list.size();j++){
+					
+					//一個人所有項目的總工時
+					Item id= (Item) list.get(j);//获得项目id
+					int hour =(Integer)(hourMap.get((id.getId()+""+u1.getId()).trim())==null?0:hourMap.get((id.getId()+""+u1.getId()).trim()));
+					//hourlist.add(f*hoursservice.gethoursByuseriditemid(u1.getId(),id.getId(),arr));//一個項目一個人花費的总工资。
+					hourlist.add(f*hour);
+					//userhour+=hoursservice.gethoursByuseriditemid(u1.getId(),id.getId(),arr);
+					userhour+=hour;
+					//itemhour+=hoursservice.gethoursByuseriditemid(u1.getId(),id.getId(),arr);
+					
+				}
+				
+				//itemhourlist.add(itemhour*f);
+				hourlist.add(userhour*f);
+				userhourlist.add(hourlist);//一个人所有项目的工时存放在这个list里面
+				hourlist=new ArrayList();//清空
+				userhour=0;//清空
+				f=0.0f;
+				
+			}
+			for(int z=0;z<list.size();z++){
+				float itemhour=0;
+				Item t=(Item)list.get(z);
+				for(int k=0;k<userlist.size();k++){
+					User us=(User)userlist.get(k);
+					//workmenylist.get(k);
+					int hour =(Integer)(hourMap.get((t.getId()+""+us.getId()).trim())==null?0:hourMap.get((t.getId()+""+us.getId()).trim()));
+					//itemhour+=hoursservice.gethoursByuseriditemid(us.getId(),t.getId(),arr)*Float.valueOf(workmenylist.get(k).toString());
+					itemhour+=hour*Float.valueOf(workmenylist.get(k).toString());
+				}
+				itemhourlist.add(itemhour);
+			}
+			
+			userhourlist.add(itemhourlist);
+			itemhourlist=new ArrayList();
+			}
+			//用户和项目都不为空时
+			}else if((null!=user&&!"".equals(user))&&(null!=item&&!"".equals(item))){
+				User use2=userService.findUserById(Integer.parseInt(user));
+              Subsidy sub=subMap.get((use2.getId()+"").trim());
+				
+              if(null!=sub||"".equals(sub)){
+				  if(null!=sub.getSubsidy2()&&!"".equals(sub.getSubsidy2())){
+						butie+=Integer.parseInt(sub.getSubsidy2());
+					}
+	                  if(null!=sub.getSubsidy3()&&!"".equals(sub.getSubsidy3())){
+	  					butie+=Integer.parseInt(sub.getSubsidy3());
+	  				}
+	                  if(null!=sub.getSubsidy4()&&!"".equals(sub.getSubsidy4())){
+	  					butie+=Integer.parseInt(sub.getSubsidy4());
+	  				}
+	                  if(null!=sub.getSubsidy5()&&!"".equals(sub.getSubsidy4())){
+	  					butie+=Integer.parseInt(sub.getSubsidy5());
+	  				}
+	                  if(null!=sub.getSubsidy6()&&!"".equals(sub.getSubsidy6())){
+	  					butie+=Integer.parseInt(sub.getSubsidy6());
+	  				}
+	                  if(null!=sub.getSubsidy7()&&!"".equals(sub.getSubsidy7())){
+	  					butie+=Integer.parseInt(sub.getSubsidy7());
+	  				}
+	                  if(null!=sub.getSubsidy8()&&!"".equals(sub.getSubsidy8())){
+	  					butie+=Integer.parseInt(sub.getSubsidy8());
+	  				}
+	                  if(null!=sub.getSubsidy9()&&!"".equals(sub.getSubsidy9())){
+	  					butie+=Integer.parseInt(sub.getSubsidy9());
+	  				}
+	                  if(null!=sub.getSubsidy1()&&!"".equals(sub.getSubsidy1())){
+	  					butie+=Integer.parseInt(sub.getSubsidy1());
+	  				}
+	                  if(null!=sub.getSubsidy10()&&!"".equals(sub.getSubsidy10())){
+	  					butie+=Integer.parseInt(sub.getSubsidy10());
+	  				}
+			if(use2.getCensus().equals("hk")){
+				//获得港籍工人的时薪
+				f=(((Float.parseFloat(sub.getBasepay())*13)+(butie)*12))/DateUtil.getCurrAllYearHour();
+			}
+			if(use2.getCensus().equals("dw")){
+				//获得港籍工人的时薪
+				f=(((Float.parseFloat(sub.getBasepay())*13)+(butie)*12)+Float.parseFloat(sub.getBasepay())*Float.parseFloat(dwbili)/100*12)/DateUtil.getCurrAllYearHour();
+			}
+			if(use2.getCensus().equals("bj")){
+				f=(((Float.parseFloat(sub.getBasepay())*13)+(butie)*12)+Float.parseFloat(sub.getBasepay())*Float.parseFloat(bjbili)/100*12)/DateUtil.getCurrAllYearHour();
+			}
+			if(use2.getCensus().equals("sh")){
+				f=(((Float.parseFloat(sub.getBasepay())*13)+(butie)*12)+Float.parseFloat(sub.getBasepay())*Float.parseFloat(shbili)/100*12)/DateUtil.getCurrAllYearHour();
+			}
+			} 
+				Item i=itemService.findItemById(Integer.parseInt(item));
+				Map m=new HashMap();
+				m.put("key", i.getItemname());
+				m.put("value", i.getId());
+				listitem.add(m);
+				m=new HashMap();
+				m.put("key", use2.getUsername());
+				m.put("value", use2.getId());
+				userlit.add(m);
+				int hour =(Integer)(hourMap.get((i.getId()+""+use2.getId()).trim())==null?0:hourMap.get((i.getId()+""+use2.getId()).trim()));
+				//hourlist.add(f*hoursservice.gethoursByuseriditemid(use2.getId(),i.getId(),arr));
+				hourlist.add(f*hour);
+				//userhour+=hoursservice.gethoursByuseriditemid(use2.getId(),i.getId(),arr);
+				userhour+=hour;
+				int itemhour=0;
+				//itemhour+=hoursservice.gethoursByuseriditemid(use2.getId(),i.getId(),arr);
+				itemhour+=hour;
+				hourlist.add(userhour*f);
+				userhourlist.add(hourlist);
+				itemhourlist.add(itemhour*f);
+				userhourlist.add(itemhourlist);
+				}else
+					if((null!=user||!"".equals(user))&&(null==item||"".equals(item))){
+					User use1=userService.findUserById(Integer.parseInt(user));
+					 Subsidy sub=subMap.get((use1.getId()+"").trim());
+						
+					// Subsidy sub=hoursservice.getSubsidyByuserid(u1.getId());
+		                
+						if(null!=sub||"".equals(sub)){
+							  if(null!=sub.getSubsidy2()&&!"".equals(sub.getSubsidy2())){
+									butie+=Integer.parseInt(sub.getSubsidy2());
+								}
+				                  if(null!=sub.getSubsidy3()&&!"".equals(sub.getSubsidy3())){
+				  					butie+=Integer.parseInt(sub.getSubsidy3());
+				  				}
+				                  if(null!=sub.getSubsidy4()&&!"".equals(sub.getSubsidy4())){
+				  					butie+=Integer.parseInt(sub.getSubsidy4());
+				  				}
+				                  if(null!=sub.getSubsidy5()&&!"".equals(sub.getSubsidy4())){
+				  					butie+=Integer.parseInt(sub.getSubsidy5());
+				  				}
+				                  if(null!=sub.getSubsidy6()&&!"".equals(sub.getSubsidy6())){
+				  					butie+=Integer.parseInt(sub.getSubsidy6());
+				  				}
+				                  if(null!=sub.getSubsidy7()&&!"".equals(sub.getSubsidy7())){
+				  					butie+=Integer.parseInt(sub.getSubsidy7());
+				  				}
+				                  if(null!=sub.getSubsidy8()&&!"".equals(sub.getSubsidy8())){
+				  					butie+=Integer.parseInt(sub.getSubsidy8());
+				  				}
+				                  if(null!=sub.getSubsidy9()&&!"".equals(sub.getSubsidy9())){
+				  					butie+=Integer.parseInt(sub.getSubsidy9());
+				  				}
+				                  if(null!=sub.getSubsidy1()&&!"".equals(sub.getSubsidy1())){
+				  					butie+=Integer.parseInt(sub.getSubsidy1());
+				  				}
+				                  if(null!=sub.getSubsidy10()&&!"".equals(sub.getSubsidy10())){
+				  					butie+=Integer.parseInt(sub.getSubsidy10());
+				  				}
+						if(use1.getCensus().equals("hk")){
+							//获得港籍工人的时薪
+							f=(((Float.parseFloat(sub.getBasepay())*13)+(butie)*12))/DateUtil.getCurrAllYearHour();
+						}
+						if(use1.getCensus().equals("dw")){
+							//获得港籍工人的时薪
+							f=(((Float.parseFloat(sub.getBasepay())*13)+(butie)*12)+Float.parseFloat(sub.getBasepay())*Float.parseFloat(dwbili)/100*12)/DateUtil.getCurrAllYearHour();
+						}
+						if(use1.getCensus().equals("bj")){
+							f=(((Float.parseFloat(sub.getBasepay())*13)+(butie)*12)+Float.parseFloat(sub.getBasepay())*Float.parseFloat(bjbili)/100*12)/DateUtil.getCurrAllYearHour();
+						}
+						if(use1.getCensus().equals("sh")){
+							f=(((Float.parseFloat(sub.getBasepay())*13)+(butie)*12)+Float.parseFloat(sub.getBasepay())*Float.parseFloat(shbili)/100*12)/DateUtil.getCurrAllYearHour();
+						}
+						} 
+						//workmenylist.add(f);
+					Map m=new HashMap();
+					m.put("key", use1.getUsername());
+					m.put("value", use1.getId());
+					userlit.add(m);
+				/*	PageModel p=itemService.findAllItem(null);//查询所有的项目id
+					List list=p.getDatas();*/
+					List list=hoursservice.getallitem();
+					if(null!=list||0!=list.size()){
+						for(int i=0;i<list.size();i++){
+							 Item t=(Item)list.get(i);
+								Map m1=new HashMap();
+								m1.put("key", t.getItemname());
+								m1.put("value", t.getId());
+								listitem.add(m1);
+							
+						}
+					}//把所有的项目id，放到listitem中，
+					for(int j=0;j<list.size();j++){//一個人所有項目的總工時
+						Item id= (Item) list.get(j);//获得项目id
+						int hour =(Integer)(hourMap.get((id.getId()+""+use1.getId()).trim())==null?0:hourMap.get((id.getId()+""+use1.getId()).trim()));
+						//hourlist.add(f*hoursservice.gethoursByuseriditemid(use1.getId(),id.getId(),arr));//一個項目一個人花費的總工時。
+						hourlist.add(f*hour);
+					}
+					List listuser=hoursservice.getallHoursManager(use1.getId(),arr);//统计一个人所有的工时，项目不包括在内
+					for(int z=0;z<listuser.size();z++){
+						Hour u2=(Hour) listuser.get(z);
+						userhour+=Integer.parseInt(u2.getHour());
+					}
+					//按项目分组得到一个项目所有人员的所有工时
+					Map<String,Integer> MaphourItem = this.hoursservice.getHourByItemAllUser(arr);
+					for(int k=0;k<list.size();k++){//存放一个项目所有用户所有的工时
+						Item id= (Item) list.get(k);
+						//itemhourlist.add(hoursservice.getHoursbyItemid(id.getId(),arr));
+						itemhourlist.add(MaphourItem.get(id.getId()+""));
+					}
+					for(int w=0;w<list.size();w++)
+						
+					{
+						Item i=(Item) list.get(w);
+						float wals=0;
+						int hour =(Integer)(hourMap.get((i.getId()+""+Integer.parseInt(user)).trim())==null?0:hourMap.get((i.getId()+""+Integer.parseInt(user)).trim()));
+						//wals+=(Float.valueOf(f)*hoursservice.gethoursByuseriditemid(Integer.parseInt(user), i.getId(), arr));
+					    wals+=(Float.valueOf(f)*hour);
+						hourmengylist.add(wals);
+					}
+					hourlist.add(userhour*f);
+					userhourlist.add(hourlist);
+					userhourlist.add(hourmengylist);
+				}else if((null!=item||!"".equals(item))&&(null==user||"".equals(user))){
+					
+					List userlist=hoursservice.getalluser();//获得所有用户
+					if(null!=userlist||0!=userlist.size()){
+						for(int i=0;i<userlist.size();i++){
+							User u1=(User) userlist.get(i);
+							Map m=new HashMap();
+							m.put("key", u1.getUsername());
+							m.put("value", u1.getId());
+							userlit.add(m);
+						}
+					}
+					Item ite=itemService.findItemById(Integer.parseInt(item));
+					Map m=new HashMap();
+					m.put("key", ite.getItemname());
+					m.put("value", ite.getId());
+					listitem.add(m);
+					float itemhour=0;
+					for(int i=0;i<userlist.size();i++){//获得所有数据，用户和项目的交集。
+						User u1=(User) userlist.get(i);
+						 Subsidy sub=subMap.get((u1.getId()+"").trim());
+							butie=0;
+						// Subsidy sub=hoursservice.getSubsidyByuserid(u1.getId());
+			                
+							if(null!=sub||"".equals(sub)){
+								  if(null!=sub.getSubsidy2()&&!"".equals(sub.getSubsidy2())){
+										butie+=Integer.parseInt(sub.getSubsidy2());
+									}
+					                  if(null!=sub.getSubsidy3()&&!"".equals(sub.getSubsidy3())){
+					  					butie+=Integer.parseInt(sub.getSubsidy3());
+					  				}
+					                  if(null!=sub.getSubsidy4()&&!"".equals(sub.getSubsidy4())){
+					  					butie+=Integer.parseInt(sub.getSubsidy4());
+					  				}
+					                  if(null!=sub.getSubsidy5()&&!"".equals(sub.getSubsidy4())){
+					  					butie+=Integer.parseInt(sub.getSubsidy5());
+					  				}
+					                  if(null!=sub.getSubsidy6()&&!"".equals(sub.getSubsidy6())){
+					  					butie+=Integer.parseInt(sub.getSubsidy6());
+					  				}
+					                  if(null!=sub.getSubsidy7()&&!"".equals(sub.getSubsidy7())){
+					  					butie+=Integer.parseInt(sub.getSubsidy7());
+					  				}
+					                  if(null!=sub.getSubsidy8()&&!"".equals(sub.getSubsidy8())){
+					  					butie+=Integer.parseInt(sub.getSubsidy8());
+					  				}
+					                  if(null!=sub.getSubsidy9()&&!"".equals(sub.getSubsidy9())){
+					  					butie+=Integer.parseInt(sub.getSubsidy9());
+					  				}
+					                  if(null!=sub.getSubsidy1()&&!"".equals(sub.getSubsidy1())){
+					  					butie+=Integer.parseInt(sub.getSubsidy1());
+					  				}
+					                  if(null!=sub.getSubsidy10()&&!"".equals(sub.getSubsidy10())){
+					  					butie+=Integer.parseInt(sub.getSubsidy10());
+					  				}
+							if(u1.getCensus().equals("hk")){
+								//获得港籍工人的时薪
+								f=(((Float.parseFloat(sub.getBasepay())*13)+(butie)*12))/DateUtil.getCurrAllYearHour();
+							}
+							if(u1.getCensus().equals("dw")){
+								//获得港籍工人的时薪
+								f=(((Float.parseFloat(sub.getBasepay())*13)+(butie)*12)+Float.parseFloat(sub.getBasepay())*Float.parseFloat(dwbili)/100*12)/DateUtil.getCurrAllYearHour();
+							}
+							if(u1.getCensus().equals("bj")){
+								f=(((Float.parseFloat(sub.getBasepay())*13)+(butie)*12)+Float.parseFloat(sub.getBasepay())*Float.parseFloat(bjbili)/100*12)/DateUtil.getCurrAllYearHour();
+							}
+							if(u1.getCensus().equals("sh")){
+								f=(((Float.parseFloat(sub.getBasepay())*13)+(butie)*12)+Float.parseFloat(sub.getBasepay())*Float.parseFloat(shbili)/100*12)/DateUtil.getCurrAllYearHour();
+							}
+							} 
+							//workmenylist.add(f);
+							int hour =(Integer)(hourMap.get((Integer.parseInt(item)+""+u1.getId()).trim())==null?0:hourMap.get((Integer.parseInt(item)+""+u1.getId()).trim()));
+						//hourlist.add(f*hoursservice.gethoursByuseriditemid(u1.getId(),Integer.parseInt(item),arr));//一個項目一個人花費的總工時。
+							hourlist.add(f*hour);
+						//userhour+=hoursservice.gethoursByuseriditemid(u1.getId(),Integer.parseInt(item),arr);
+						userhour+=hour;
+						//itemhour+=hoursservice.gethoursByuseriditemid(u1.getId(),Integer.parseInt(item),arr)*f;
+						itemhour+=hour*f;
+						/*List listuser=hoursservice.getallHoursManager(u1.getId(),arr);//统计一个人所有的工时，项目不包括在内
+						userhour+=
+						for(int z=0;z<listuser.size();z++){
+							Hour u2=(Hour) listuser.get(z);
+							userhour+=Integer.parseInt(u2.getHour());
+						}*/
+						
+						hourlist.add(userhour*f);
+						userhourlist.add(hourlist);//一个人所有项目的工时存放在这个list里面
+						//userhourlist.add(userhour);//添加一个所有项目的总工时。
+						
+						hourlist=new ArrayList();//清空
+						userhour=0;//清空
+						f=0.0f;
+						
+					}
+					
+					itemhourlist.add(itemhour);
+					userhourlist.add(itemhourlist);
+					
+					
+				}
+		JxlExceptor.getInstence().getExcerByuser2("hours",listitem,userlit,userhourlist,response);
+	return null;
+}
+private void getUserButie(Subsidy sub) {
+	// TODO Auto-generated method stub
+	
+}
+public static boolean isNumeric(String str){    
+	  Pattern pattern = Pattern.compile("[0-9]*");    
+   return pattern.matcher(str).matches();       
+}   
+
+}

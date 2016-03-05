@@ -1,0 +1,19 @@
+package com.ruling.cost.subsidy.service;
+
+import java.util.List;
+
+import com.ruling.cost.subsidy.domain.Subsidy;
+import com.ruling.cost.utils.PageModel;
+
+public interface SubsidyManager {
+
+	public void addSubsidy(Subsidy subsi);
+	
+	public void delSubsidy(List subsids);
+	
+	public void updateSubsidy(Subsidy subsi);
+	
+	public PageModel findAllSubsidy(Subsidy subsidy);
+	
+	public Subsidy findSubsidyById(int subsidyid);
+}

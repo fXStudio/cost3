@@ -1,0 +1,43 @@
+@charset "utf-8";
+/* CSS Document */
+
+body{
+	margin:0;
+	padding:0;
+	font-size:14px;
+	background:url(../images/lbg1.gif) repeat-x top #003867}
+.loginmian{
+	width:1004px;
+	height:607px;
+	margin:0 auto;
+	background:url(../images/loginmianbg.jpg) no-repeat top}
+.log_text{
+	width:290px;
+	height:140px;
+	float:left;
+	margin:387px 0 0 360px;}
+.input{
+	width:120px;
+	border:solid 1px #ffffff;
+	background:#ccc;
+	height:22px;
+	line-height:22px;}
+	
+.lan{
+	width:87px;
+	height:24px;
+	line-height:24px;
+	text-align:center;
+	font-size:12px;
+	font-weight:bold;
+	background:url(../images/loginan.gif) no-repeat;
+	border:none;}
+.lan:hover{
+	width:87px;
+	height:24px;
+	line-height:24px;
+	text-align:center;
+	background:url(../images/loginan2.gif) no-repeat;
+	border:none;}
+	
+	

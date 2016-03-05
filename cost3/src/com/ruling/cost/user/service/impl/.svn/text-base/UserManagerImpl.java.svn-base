@@ -1,0 +1,229 @@
+package com.ruling.cost.user.service.impl;
+
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.ruling.cost.item.domain.ItemUser;
+import com.ruling.cost.user.domain.User;
+import com.ruling.cost.user.service.UserManager;
+import com.ruling.cost.util.dao.ObjectDao;
+import com.ruling.cost.utils.PageModel;
+import com.ruling.cost.utils.SystemException;
+public class UserManagerImpl implements UserManager {
+	ObjectDao objectDao;
+	
+	public void setObjectDao(ObjectDao objectDao) {
+		this.objectDao = objectDao;
+	}
+	public void addUser(User u) {
+		objectDao.save(u);
+	}
+	public void delUser(List usersid) {
+		
+		for(int i=0;i<usersid.size();i++){
+			
+			int uid = (Integer)usersid.get(i);
+			
+			List subsidyList = this.objectDao.getByParm(" from Subsidy s where s.user.id=?", new Object[]{uid});
+			List itemuserList = this.objectDao.getByParm("from ItemUser iu where iu.userid=?", new Object[]{uid});
+			
+			if(subsidyList.size()>0){
+				
+				throw new SystemException("已为该员工添加工资不允许删除");
+			}
+			if(itemuserList.size()>0){
+				throw new SystemException("该人员已经添加到项目中不允许删除");
+			}
+			
+			objectDao.delete(objectDao.getById(User.class,uid));
+		}
+	}
+	public PageModel findAllUser(User user) {
+		
+		PageModel pm = new PageModel();
+		
+		String hql="from User";
+		
+		if(user==null){
+			
+			pm = objectDao.searchPaginated(hql,null);
+			
+			return pm;
+		}
+
+		if(!user.getUsername().trim().equals("")&&!user.getUsercode().trim().equals("")){
+			
+			 Object[] obj = new Object[2];
+			 
+			 hql=" from User u where u.username like ? or u.usercode like ?";
+			 
+			 obj[0]="%"+user.getUsername()+"%";
+			 obj[1]="%"+user.getUsercode()+"%";
+			 
+			 pm = objectDao.searchPaginated(hql,obj);
+			 
+			 return pm;
+		}
+		
+		if(user.getUsername().trim().equals("")&&user.getUsercode().trim().equals("")){
+			
+			 hql=" from User";
+			 pm = objectDao.searchPaginated(hql,null);
+			 
+			 return pm;
+		}
+		
+		if(!user.getUsername().trim().equals("")&&user.getUsercode().trim().equals("")){
+			
+			 Object[] obj = new Object[1];
+			 
+			 hql=" from User u where u.username like ?";
+			 
+			 obj[0]="%"+user.getUsername()+"%";
+			 pm = objectDao.searchPaginated(hql,obj);
+			 
+			 return pm;
+		}
+		
+		
+		if(user.getUsername().equals("")&&!user.getUsercode().trim().equals("")){
+			
+			 Object[] obj = new Object[1];
+			 
+			 hql=" from User u where u.usercode like ?";
+			 
+			 obj[0]="%"+user.getUsercode()+"%";
+			 pm = objectDao.searchPaginated(hql,obj);
+			 
+			 return pm;
+		}
+		 
+		 return pm;
+	}
+	public User findUserById(int uid) {
+		return (User)objectDao.getById(User.class, uid);
+		
+	}
+	public void updateUser(User u) {
+				
+		objectDao.update(u);
+	}
+	public PageModel findUserByItemId(int itemid) {
+		PageModel pm = this.objectDao.searchPaginated(" from User u, ItemUser i where u.id=i.userid and i.itemid=?", new Object[]{itemid});
+		
+		
+		List objectlist = pm.getDatas();
+		List userlist = new ArrayList();
+		for(int i=0;i<objectlist.size();i++){
+			Object[] obj = (Object[])objectlist.get(i);
+			userlist.add(obj[0]);
+		}
+		pm.setDatas(userlist);
+		return pm;
+	}
+	public User login(String username, String password) throws Exception{
+		
+        List userList = this.objectDao.getAll("User");
+        
+        if(userList.size()==0){
+        	
+        	throw new SystemException("没有此用户");
+        }
+        
+        boolean flag = false;
+        
+        User u = new User();
+        
+        for(int i=0;i<userList.size();i++){
+        	
+        	User user = (User)userList.get(i);
+        	
+        	if(username.equalsIgnoreCase(user.getEasycode())){
+        		
+        		flag = true;
+        		
+        		u = (User)userList.get(i);
+        	}
+        }
+        
+        if(!flag){
+        	
+        	throw new SystemException("没有此用户");
+        }
+        
+        if(!u.getPassword().equals(password)){
+        	
+        	throw new SystemException("密码不正确");
+        }
+        
+        return u;
+	}
+	
+	public void updatePwd(User u) throws Exception {
+		
+		int uid = u.getId();
+		
+		User currUser = this.findUserById(uid);
+		
+		if(u.getPassword().equals(currUser.getPassword())){
+			
+			currUser.setPassword(u.getNewpwd());
+			
+			this.objectDao.update(currUser);
+		}else{
+			throw new Exception("原密码错误");
+		}
+	}
+	public PageModel findUserForItem(int itemid) {
+		
+//		PageModel userPm  = this.objectDao.searchPaginated(" from User");
+//		
+//		PageModel itemUserPm = this.objectDao.searchPaginated("from Itemuser iu where iu.itemid="+itemid);
+//		
+//		List userlist = new ArrayList();
+//		
+//		for(int i=0;i<userPm.getDatas().size();i++){
+//			
+//			User u = (User)userPm.getDatas().get(i);
+//			
+//			for(int j=0;j<itemUserPm.getDatas().size();j++){
+//				
+//				ItemUser iu = (ItemUser)itemUserPm.getDatas().get(j);
+//				
+//				if(u.getId()!=iu.getUserid()){
+//					
+//					userlist.add(u);
+//				}
+//			}
+//		}
+//		
+//		userPm.setTotal(userlist.size());
+		PageModel itemUserPm = this.objectDao.searchPaginated("from ItemUser iu where iu.itemid="+itemid,0,100);
+		String hql = " from User";
+		if(itemUserPm.getDatas().size()>0){
+			
+			String uIds="(";
+			
+			for(int i=0;i<itemUserPm.getDatas().size();i++){
+				
+				ItemUser iu = (ItemUser)itemUserPm.getDatas().get(i);
+				
+				if(i!=(itemUserPm.getDatas().size()-1)){
+					
+					uIds+=iu.getUserid()+",";
+					
+				}else{
+					
+					uIds+=iu.getUserid()+")";
+				}
+				
+			}
+			
+			hql = " from User u where u.id not in"+uIds;
+		}
+
+		return this.objectDao.searchPaginated(hql);
+	}
+
+}

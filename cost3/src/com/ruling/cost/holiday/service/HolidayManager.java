@@ -1,0 +1,24 @@
+package com.ruling.cost.holiday.service;
+
+import java.util.List;
+import java.util.Map;
+
+import com.ruling.cost.holiday.domain.Holiday;
+import com.ruling.cost.utils.PageModel;
+
+public interface HolidayManager {
+
+	public void add(Holiday holiday) throws Exception;
+
+	public void deleteHoliday(int holidayid);
+
+	public void deleteHolidayArray(String[] ids);
+
+	public void updateHoliday(Holiday holiday) throws Exception;
+
+	public PageModel findAllHolidayForPageModel(Holiday h);
+
+	public Holiday findHolidayById(int holidayid);
+
+	public Map<String, String> findAllHoliday();
+}

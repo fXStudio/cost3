@@ -1,0 +1,623 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+
+<struts>
+	<!-- 设置Spring和Struts的整合 -->
+	<constant name="struts.objectFactory" value="spring" />
+	<!--  设置全局编码  -->
+	<constant name="struts.i18n.encoding" value="utf-8"></constant>
+	
+	<!-- 定义基于根目录的请求处理函数 -->
+	<package name="ruling.cost" namespace="/" extends='struts-default'>
+		<!-- 拦截器 -->
+		<interceptors>
+			<!-- 系统权限管理拦截器，用来检查用户的登录状态 -->
+			<interceptor name="auth" class="com.ruling.cost.utils.AuthenticationInterceptor" />
+			<!-- 拦截器栈-->
+			<interceptor-stack name="securityStack">
+				<!-- 框架的默认拦截器栈, 它几乎包含了所有的可用拦截器 -->
+				<interceptor-ref name="defaultStack" />
+				<!-- 这是我们系统自定义的权限管理拦截器 -->
+				<interceptor-ref name="auth" />
+			</interceptor-stack>
+		</interceptors>
+	
+		<!-- 全局状态映射工具 -->
+		<global-results>
+			<!-- 异常信息处理页 -->
+			<result name='exception'>/pages/error.jsp</result>
+			<!-- 系统登录页 -->
+			<result name="login">/login.jsp</result>
+		</global-results>
+		
+		<!-- 异常对象的映射配置 -->
+		<global-exception-mappings>
+			<exception-mapping result="exception" exception="java.lang.Exception"/>
+		</global-exception-mappings>
+		
+		<!-- 针对于登录请求的处理 -->
+		<action name="login" class="userAction" method='login'>
+			<result name="login_success">main.jsp</result>
+			<result name="logout">login.jsp</result>
+		</action>
+	</package>
+
+	<!-- 工时录入 -->
+	<package name="ruling.hours" namespace="/hours" extends="ruling.cost">
+		<action name="browe" class="hoursAction" method='browe'>
+			<result name="hour_browe">hoursList.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="saveUpdate" class="hoursAction" method='saveUpdate'>
+			<result name="saved" type="redirectAction">
+				browe.action
+			</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="toExceljsp" class="hoursAction" method="toExceljsp">
+			<result name="searchexcel">searchhours.jsp</result>
+		</action>
+		
+		<!-- 报表导出相关 -->
+		<action name="excelWorkTime" class="hoursAction" method='excelWorkTime'>  
+            <result name="excelWorkTime" type="stream">  
+                <param name="contentType">application/vnd.ms-excel</param>  
+                <param name="inputName">excelStream</param>
+                <!-- 个人薪资 -->
+                <param name="contentDisposition">filename="excelWorkTime_${sDate}.xls"</param>  
+                <param name="bufferSize">1024</param>  
+            </result>
+        </action>
+        <action name="excelStatistics" class="hoursAction" method='excelStatistics'>  
+            <result name="excelStatistics" type="stream">  
+                <param name="contentType">application/vnd.ms-excel</param>  
+                <param name="inputName">excelStream</param>
+                <!-- 个人薪资 -->
+                <param name="contentDisposition">filename="excelStatistics_${sDate}.xls"</param>  
+                <param name="bufferSize">1024</param>  
+            </result>
+        </action>
+	</package>
+	
+	<!-- 人员管理 -->
+	<package name="ruling.user" namespace='/user' extends="ruling.cost">
+		<!-- 浏览所有人员信息列表 -->
+		<action name="browe" class="userAction" method='browe'>
+			<result name="user_browe">user_index.jsp</result>
+			<!-- 对于这个功能启用了拦截器栈 -->
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		
+		<!-- 浏览当前被选中用户的信息 -->
+		<action name="itemUserSelectBrowe" class="userAction" method='itemUserSelectBrowe'>
+			<result name="itemUserSelectBrowe">item_select_user_index.jsp</result>
+			<result name="input">item_select_user_index.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		
+		<!-- 选择浏览 -->
+		<action name="selectBrowe" class="userAction" method='selectBrowe'>
+			<result name="select_browe">select_user_index.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		
+		<!-- 增加用户 -->
+		<action name="addInput" class="userAction" method='addInput'>
+			<result name="user_add_input">user_add.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		
+		<!-- 更新用户 -->
+		<action name="updateInput" class="userAction" method='updateInput'>
+			<result name="user_update_input">user_update.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		
+		<!-- 查看 -->
+		<action name="look" class="userAction" method='look'>
+			<result name="look">user_infor.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		
+		<!-- 删除 -->
+		<action name="delete" class="userAction" method='delete'>
+			<result name='user_del_success' type="redirectAction">browe.action</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		
+		<!-- 增加 -->
+		<action name="add" class="userAction" method='add'>
+			<result name='user_add_success' type="redirectAction">browe.action</result>
+			<result name='input' type="redirectAction">browe.action</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		
+		<!-- 更新 -->
+		<action name="update" class="userAction" method='update'>
+			<result name='user_update_success' type="redirectAction">browe.action</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		
+		<!-- 项目查看人员 -->
+		<action name="broweItemUser" class="userAction" method='broweItemUser'>
+			<result name='broweItemUser'>item_query_user_index.jsp</result>
+			<result name="broweDeleteItemUser">item_delete_user_index.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		
+		<!-- 加载主页面 -->
+		<action name="loginBottom" class="userAction" method='loginBottom'>
+			<result name='loginBottom'>/pages/bottom.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		
+		<action name="loginTitle" class="userAction" method='loginTitle'>
+			<result name='loginTitle'>/pages/title.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		
+		<action name="loginLeft" class="userAction" method='loginLeft'>
+			<result name='loginLeft'>/pages/left.jsp</result>
+			<result name='loginCenter'>/pages/center.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		
+		<!-- 修改密码 -->
+		<action name="editpwd" class="userAction" method='editPwd'>
+			<result name='edit_pwd_success'>/pages/center.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		
+		<action name="postlist" class="userAction" method='lookpost'>
+			<result name='post'>/zzjg.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		
+		<action name="zzjg" class="userAction" method='zzjg'>
+			<result name='showpage'>/zzjg.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+	</package>
+
+	<!-- 部门管理 -->
+	<package name="ruling.dept" namespace='/dept' extends="ruling.cost">
+		<action name="browe" class="departmentAction" method='browe'>
+			<result name="dept_browe">/dept/dept_index.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="listDepts" class="departmentAction" method='listDepts'>
+			<result name="dept_page">dept_view.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="addInput" class="departmentAction" method='addInput'>
+			<result name="comp_add_input">comp_add.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="deptAdd" class="departmentAction" method='deptAddInput'>
+			<result name="dept_add_input">dept_add.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="updateInput" class="departmentAction" method='updateInput'>
+			<result name="comp_update_input">
+				/dept/comp_update.jsp
+			</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="deptupdateInput" class="departmentAction" method='deptupdateInput'>
+			<result name="dept_update_input">
+				/dept/dept_update.jsp
+			</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="delete" class="departmentAction" method='delete'>
+			<result name='comp_del_success' type="redirectAction">
+				browe.action
+			</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="deleteDept" class="departmentAction" method='deleteDept'>
+			<result name='dept_del_success' type="redirect">
+				listDepts.action?dept.id=${dept.compid}
+			</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="add" class="departmentAction" method='add'>
+			<result name='comp_add_success' type="redirectAction">
+				browe.action
+			</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="addDept" class="departmentAction" method='addDept'>
+			<result name='dept_add_success' type="redirect">
+				listDepts.action?dept.id=${dept.compid}
+			</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="update" class="departmentAction" method='update'>
+			<result name='comp_update_success' type="redirectAction">
+				browe.action
+			</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="updateDept" class="departmentAction" method='updateDept'>
+			<result name='dept_update_success' type="redirect">
+				listDepts.action?dept.id=${dept.compid}
+			</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="selectBrowe" class="departmentAction" method='selectBrowe'>
+			<result name="select_browe">select_dept_index.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+	</package>
+
+	<!-- 项目管理 -->
+	<package name="ruling.item" namespace='/item' extends="ruling.cost">
+		<action name="browe" class="itemAction" method='browe'>
+			<result name="item_browe">/item/item_index.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="addInput" class="itemAction" method='addInput'>
+			<result name="item_add_input">/item/item_add.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="updateInput" class="itemAction"
+			method='updateInput'>
+			<result name="item_update_input">
+				/item/item_update.jsp
+			</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="delete" class="itemAction" method='delete'>
+			<result name='item_del_success' type="redirectAction">
+				browe.action
+			</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+			<result name='exception'>/pages/error.jsp</result>
+		</action>
+		<action name="add" class="itemAction" method='add'>
+			<result name='item_add_success' type="redirectAction">
+				browe.action
+			</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="update" class="itemAction" method='update'>
+			<result name='item_update_success' type="redirectAction">
+				browe.action
+			</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<!-- 项目添加人员 -->
+		<action name="addItemUser" class="itemAction"
+			method='addItemUser'>
+			<result name='addItemUserbrowe' type="redirectAction">
+				browe.action
+			</result>
+			<result name='delete_itemuser_success'
+				type="redirectAction">
+				browe.action
+			</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+			<result name='input' type="redirectAction">
+				browe.action
+			</result>
+		</action>
+		<action name="updateitemuser" class="itemAction"
+			method='updateitemuser'>
+			<result name='setManger' type="redirectAction">
+				browe.action
+			</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+			<result name='input' type="redirectAction">
+				browe.action
+			</result>
+		</action>
+		<action name="selectBrowe" class="itemAction"
+			method='selectBrowe'>
+			<result name='select_browe'>
+				/item/select_item_index.jsp
+			</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<!-- 显示item_report记录 -->
+		<action name="itemReport_showReport" class="ItemReportAction"
+			method='showReport'>
+			<result name='add'>/item/itemreport_add.jsp</result>
+			<result name='update'>/item/itemreport_update.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<!-- 插入item_report记录 -->
+		<action name="itemReport_save" class="ItemReportAction"
+			method='addItemReport'>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<!-- 删除item_report记录 -->
+		<action name="itemReport_delete" class="ItemReportAction"
+			method='deleteItemReport'>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<!-- 更新item_report记录 -->
+		<action name="itemReport_update" class="ItemReportAction"
+			method='updateItemReport'>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<!-- 插入item_report2记录 -->
+		<action name="itemReport2_save" class="ItemReportAction"
+			method='addItemReport2'>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<!-- 显示item_report2记录 -->
+		<action name="itemReport2_show" class="ItemReportAction"
+			method='showItemReport2'>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<!-- 更新item_report2记录 -->
+		<action name="itemReport2_update" class="ItemReportAction"
+			method='updateItemReport2'>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<!-- 删除item_report2记录 -->
+		<action name="itemReport2_delete" class="ItemReportAction"
+			method='deleteItemReport2'>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<!-- 跳转到添加item_report3页面 -->
+		<action name="itemReport3_forwardAdd" class="ItemReportAction"
+			method='forwardAddItemReport3Page'>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<!-- 跳转到添加item_report2页面 -->
+		<action name="itemReport2_forwardAdd" class="ItemReportAction"
+			method='forwardAddItemReport2Page'>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<!-- 插入item_report2记录 -->
+		<action name="itemReport3_save" class="ItemReportAction"
+			method='addItemReport3'>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<!-- 显示item_report3记录 -->
+		<action name="itemReport3_show" class="ItemReportAction"
+			method='showItemReport3'>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<!-- 删除item_report3记录 -->
+		<action name="itemReport3_delete" class="ItemReportAction"
+			method='deleteItemReport3'>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<!-- 删除item_report3记录 -->
+		<action name="itemReport3_update" class="ItemReportAction"
+			method='updateItemReport3'>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<!-- 获取预算值 -->
+		<action name="itemReport3_getYusuanByRiqi"
+			class="ItemReportAction" method='getYusuanByRiqi'>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+	</package>
+
+	<!-- 工资补贴管理 -->
+	<package name="ruling.subsidy" namespace='/subsidy' extends="ruling.cost">
+		<action name="excelPerson" class="subsidyAction" method='expPersonExcel'>  
+            <result name="excelPerson" type="stream">  
+                <param name="contentType">application/vnd.ms-excel</param>  
+                <param name="inputName">excelStream</param>
+                <!-- 个人薪资 -->
+                <param name="contentDisposition">filename="Personal_salary.xls"</param>  
+                <param name="bufferSize">1024</param>  
+            </result>
+        </action>
+        <action name="excelAllChdange" class="subsidyAction" method='excelAllChdange'>  
+            <result name="excelAllChdange" type="stream">  
+                <param name="contentType">application/vnd.ms-excel</param>  
+                <param name="inputName">excelStream</param>  
+                <!-- 年薪资变动 -->
+                <param name="contentDisposition">filename="Yearly_salary_change.xls"</param>  
+                <param name="bufferSize">1024</param>  
+            </result>
+        </action>  
+        <action name="excelCompanySalary" class="subsidyAction" method='excelCompanySalary'>  
+            <result name="excelCompanySalary" type="stream">  
+                <param name="contentType">application/vnd.ms-excel</param>  
+                <param name="inputName">excelStream</param>  
+                <!-- 年薪资 -->
+                <param name="contentDisposition">filename="Yearly_salary_summary.xls"</param>  
+                <param name="bufferSize">1024</param>  
+            </result>
+        </action>
+		<action name="browe" class="subsidyAction" method='browe'>
+			<result name="browe">/subsidy/subsidy_index.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="addInput" class="subsidyAction" method='addInput'>
+			<result name="subsidy_add_input">
+				/subsidy/subsidy_add.jsp
+			</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="updateInput" class="subsidyAction" method='updateInput'>
+			<result name="subsidy_update_input">
+				/subsidy/subsidy_update.jsp
+			</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="delete" class="subsidyAction" method='delete'>
+			<result name='subsidy_del_success' type="redirectAction">
+				browe.action
+			</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="add" class="subsidyAction" method="add">
+			<result name='subsidy_add_success' type="redirectAction">
+				browe.action
+			</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+			<result name='input' type="redirectAction">
+				browe.action
+			</result>
+			<result name='exception'>/pages/error.jsp</result>
+		</action>
+		<action name="update" class="subsidyAction" method='update'>
+			<result name='subsidy_update_success' type="redirectAction">
+				browe.action
+			</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+	</package>
+
+	<!-- 项目统计 -->
+	<package name="ruling.total" namespace='/total' extends="ruling.cost">
+		<action name="browe" class="totalAction" method='browe'>
+			<result name="browe">/total/Totallist.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="toadd" class="totalAction" method='toadd'>
+			<result name="toadd">/total/addtotal.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="add" class="totalAction" method='add'>
+			<result name="add" type="redirectAction">
+				browe.action
+			</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="delete" class="totalAction" method='delete'>
+			<result name="delete" type="redirectAction">
+				browe.action
+			</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="toupdate" class="totalAction" method='toupdate'>
+			<result name="toupdate">/total/totalupdate.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="update" class="totalAction" method='update'>
+			<result name="update" type="redirectAction">
+				browe.action
+			</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="find" class="totalAction" method='find'>
+			<result name="find">/total/totalinfo.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="getitemhours" class="totalAction"
+			method='getitemhours'>
+
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="toexcept" class="totalAction" method='toexcept'>
+			<result name="toecept">/total/Totaltoexcept.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+
+		<action name="excelhoursByYear" class="totalAction" method="excelhoursByYear">
+		</action>
+		<action name="excelworkhours" class="totalAction" method="excelworkhours">
+		</action>
+	</package>
+	
+	<!-- 项目预算 -->
+	<package name="ruling.bugget" namespace='/bugget' extends="ruling.cost">
+		<action name="browe" class="budgetAction" method='browe'>
+			<result name="browe">Totallist.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="toadd" class="budgetAction" method='toadd'>
+			<result name="toadd">addtotal.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="add" class="budgetAction" method='add'>
+			<result name="add" type="redirectAction">browe.action</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="delete" class="budgetAction" method='delete'>
+			<result name="delete" type="redirectAction">browe.action</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="toupdate" class="budgetAction" method='toupdate'>
+			<result name="toupdate">totalupdate.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="update" class="budgetAction" method='update'>
+			<result name="update" type="redirectAction">browe.action</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="find" class="budgetAction" method='find'>
+			<result name="find">totalinfo.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+	</package>
+	
+	<!-- 超时工作 -->
+	<package name="ruling.overtime" namespace='/overtime' extends="ruling.cost">
+		<action name="showItems" class="overtimeAction" method="getAllOverTimes">
+			<result name="statistics">OvertimeList.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="saveUpdate" class="overtimeAction" method="saveUpdate">
+			<result name="saved" type="redirect">
+				showItems.action?overtime.itemid=${overtime.itemid}&amp;overtime.date=${overtime.date}&amp;overtime.itemname=${overtime.itemname}
+			</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="statisticsIndex" class="overtimeAction" method="statisticsMain">
+			<result name="indexPage">statistics.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="showItemOvers" class="overtimeAction" method="showItemOvers">
+			<result name="statistics">showItemOvers.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+	</package>
+	<!-- 超时工作的对外数据接口 -->
+	<package name="ruling.overtime.spi" namespace='/spi' extends="json-default">
+		<action name="listOvers" class="overtimeAction" method="listOvers">
+			<result name="listOvers" type="json">
+				<param name="root">res</param>
+				<!-- 包括哪些properties -->  
+				<param name="includeProperties">res</param> 
+			</result>
+		</action>
+		<action name="listMonthOvers" class="overtimeAction" method="listMonthOvers">
+			<result name="listMonthOvers" type="json">
+				<param name="root">lres</param>
+				<!-- 包括哪些properties -->  
+				<param name="includeProperties">lres</param> 
+			</result>
+		</action>
+		<action name="listHours" class="hoursAction" method="listHours">
+			<result name="listHours" type="json">
+				<param name="root">res</param>
+				<!-- 包括哪些properties -->  
+				<param name="includeProperties">res</param> 
+			</result>
+		</action>
+	</package>
+	
+	<!-- 工作时间分配 -->
+	<package name="ruling.timemanager" namespace='/time' extends="ruling.cost">
+		<action name="browe" class="TimeManagerAction" method="browe">
+			<result name="broweIndex">timeMangerIndex.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="timeItems" class="TimeManagerAction" method="timeItems">
+			<result name="ItemsPage">timeItems.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="saveUpdate" class="TimeManagerAction" method="saveUpdate">
+			<result name="saved" type="redirect">
+				timeItems.action?user.id=${user.id}
+			</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+		<action name="updateItemTime" class="TimeManagerAction" method="updateItemTime">
+			<result name="updateItemTime">updateItemTime.jsp</result>
+			<interceptor-ref name="securityStack"></interceptor-ref>
+		</action>
+	</package>
+</struts>
