@@ -90,11 +90,11 @@ public class HoursManagerImpl implements HoursManager {
 		+ "-01";
 		Object[] values = { userid };
 		if (date.equals(starttime)) {
-			hql = "select  distinct  itmeid from Hour where userid=? and todaydate>='" + starttime
-					+ "' and todaydate<'" + endtime + "'";
+			hql = "select  distinct  itmeid from Hour where userid=? and todaydate>='" + starttime + "' and todaydate<'"
+					+ endtime + "'";
 		} else {
-			hql = "select  distinct  itmeid from Hour where userid=? and todaydate>='" + starttime
-					+ "' and todaydate<'" + endtime + "'";
+			hql = "select  distinct  itmeid from Hour where userid=? and todaydate>='" + starttime + "' and todaydate<'"
+					+ endtime + "'";
 		}
 
 		return objDao.getByParm(hql, values);
@@ -277,7 +277,8 @@ public class HoursManagerImpl implements HoursManager {
 		String hql = " from Hour where userid=? and itmeid=?";
 		for (int i = 0; i < user.size(); i++) {
 			for (int j = 0; j < item.size(); j++) {
-				Object[] values = { Integer.parseInt(user.get(i).toString()), Integer.parseInt(item.get(j).toString()) };
+				Object[] values = { Integer.parseInt(user.get(i).toString()),
+						Integer.parseInt(item.get(j).toString()) };
 				List list = objDao.getByParm(hql, values);
 				for (int k = 0; k < list.size(); k++) {
 					objDao.delete(list.get(k));
@@ -325,8 +326,8 @@ public class HoursManagerImpl implements HoursManager {
 				new Object[] { id });
 
 		for (Item item : list) {
-			List<CWorkTime> cls = objDao.getByParm("from CWorkTime where itemId = ? and userId = ?", new Object[] {
-					item.getId(), id });
+			List<CWorkTime> cls = objDao.getByParm("from CWorkTime where itemId = ? and userId = ?",
+					new Object[] { item.getId(), id });
 
 			if (cls.size() > 0) {
 				item.setTimelong(cls.get(0).getResidTime());
@@ -343,8 +344,8 @@ public class HoursManagerImpl implements HoursManager {
 	 */
 	public void save(List<Hour> list) {
 		for (Hour h : list) {
-			List l = objDao.getByParm("from Hour where userid = ? and itmeid = ? and todaydate = ?", new Object[] {
-					h.getUserid(), h.getItmeid(), h.getTodaydate()
+			List l = objDao.getByParm("from Hour where userid = ? and itmeid = ? and todaydate = ?",
+					new Object[] { h.getUserid(), h.getItmeid(), h.getTodaydate()
 
 			});
 			int count = 0;
@@ -355,8 +356,8 @@ public class HoursManagerImpl implements HoursManager {
 				objDao.delete(tmp);
 			}
 
-			List<CWorkTime> cworks = objDao.getByParm("from CWorkTime where userid = ? and itemid = ?", new Object[] {
-					h.getUserid(), h.getItmeid() });
+			List<CWorkTime> cworks = objDao.getByParm("from CWorkTime where userid = ? and itemid = ?",
+					new Object[] { h.getUserid(), h.getItmeid() });
 
 			// 项目的剩余时间
 			if (cworks.size() > 0) {
@@ -373,8 +374,8 @@ public class HoursManagerImpl implements HoursManager {
 	}
 
 	public Map<String, String> listHours(int id) {
-		List<Hour> list = objDao.getByParm("from Hour where userid=? and substring(todaydate, 1, 7) = ?", new Object[] {
-				id, new SimpleDateFormat("yyyy-MM").format(new Date()) });
+		List<Hour> list = objDao.getByParm("from Hour where userid=? and substring(todaydate, 1, 7) = ?",
+				new Object[] { id, new SimpleDateFormat("yyyy-MM").format(new Date()) });
 
 		Map<String, String> map = new HashMap<String, String>();
 		for (Hour h : list) {
@@ -694,8 +695,8 @@ public class HoursManagerImpl implements HoursManager {
 					continue outter;
 				}
 				double val = sheet.getRow(n + 2).getCell(i + 1).getNumericCellValue();
-				sheet.getRow(n + 2).getCell(i + 1).setCellValue(
-						numberFormatfuc(calcBase(o.getHour(), users.get(i)) + val));
+				sheet.getRow(n + 2).getCell(i + 1)
+						.setCellValue(numberFormatfuc(calcBase(o.getHour(), users.get(i)) + val));
 			}
 			work.write(out);
 		} catch (Exception e) {
@@ -708,7 +709,8 @@ public class HoursManagerImpl implements HoursManager {
 		if (list.size() > 0) {
 			Subsidy sub = (Subsidy) list.get(0);
 
-			String formula = "2016-01".compareTo(date) < 0 ? u.getNat().getWelfareBak().getWformula(): u.getNat().getWelfare().getWformula();
+			String formula = "2016-01".compareTo(date) > 0 ? u.getNat().getWelfareBak().getWformula()
+					: u.getNat().getWelfare().getWformula();
 
 			list = (List) objDao.getByParm("from SubsidyHistory where subsidyId = ? order by id desc",
 					new Object[] { sub.getId() });
